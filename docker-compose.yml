@@ -1,0 +1,33 @@
+version: '3.2'
+
+services:
+  sugu-ms-billing:
+    build: ./
+    container_name: sugu-ms-billing
+    ports:
+      - 3006:3006
+    env_file:
+      - ./.env.docker
+    volumes:
+      - node_modules:/ms-billing/api/node_modules
+    command: npm run start:dev
+    networks:
+      - uea-core-api_sugu_network
+    stdin_open: true
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /ms-billing/api/src
+          ignore:
+            - node_modules/
+
+volumes:
+  node_modules:
+    driver: "local"
+  
+networks:
+  uea-core-api_sugu_network:
+    external: true
+
+#test
