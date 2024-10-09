@@ -1,18 +1,6 @@
 import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class MomentDto {
-  @IsNotEmpty()
-  @IsString()
-  displayName: string;
-}
-
-class ChanelledNodeDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-}
-
 class Params {
   @IsNotEmpty()
   @IsNumber()
@@ -32,15 +20,15 @@ class Params {
 
   @IsNotEmpty()
   @IsString()
-  trackingId: number;
+  trackingId: string;
 
   @IsNotEmpty()
   @IsString()
-  chanelledNode: string;
+  chanelledNodeId: string;
 
   @IsNotEmpty()
   @IsString()
-  moment: string;
+  momentId: string;
 
   @IsNotEmpty()
   @IsDate()

@@ -38,15 +38,17 @@ export function getBillableOrdersQuery() {
     AND "product_shipper_products"."product_id" = "product"."id"
     WHERE 
       "order"."shipper" = $1
-      AND "order"."service" = $2
-      AND "order"."product" = $3
+      AND ("order"."service" = $2 OR $2 = '0')
+      AND ("order"."product" = $3 OR $3 = '0')
       AND ("order"."originalTrackingId" = $4 OR $4 = '0')
-      AND ("moments"."display_name" = $5 OR $5 = '')
+      AND ("moments"."id" = $5 OR $5 = 0)
       AND "stages_history"."createdAt" BETWEEN $6 AND $7
-    ORDER BY 
-      "stagesHistoryCreatedAt" DESC
-    LIMIT $8 OFFSET $9;
-  `;
+     `;
+    
+    //  ORDER BY 
+    //   "stagesHistoryCreatedAt" DESC
+    // LIMIT $8 OFFSET $9;
+ 
 
   // return `
   //   SELECT 

@@ -26,17 +26,18 @@ export class BillingService {
         validatedParams.serviceId,
         validatedParams.productId,
         validatedParams.trackingId,
-        validatedParams.moment,
+        validatedParams.momentId,
         validatedParams.createdAtFrom,
-        validatedParams.createdAtTo,
-        validatedParams.limit,
-        validatedParams.offset
+        validatedParams.createdAtTo
       ];
 
       console.log(paramsArray);
 
-      const query = getBillableOrdersQuery();
+      const query = getBillableOrdersQuery() + 
+        `ORDER BY ${validatedParams.sort} ${validatedParams.order} LIMIT ${validatedParams.limit} OFFSET ${validatedParams.offset};`;
       const result = await queryRunner.query(query, paramsArray);
+
+      console.log(result);
       
       await queryRunner.commitTransaction();
       
@@ -54,30 +55,27 @@ export class BillingService {
 
     if (!parsedPayload ||
       !parsedPayload.shipperId ||
-      !parsedPayload.serviceId ||
-      !parsedPayload.productId ||
       !parsedPayload.createdAtFrom ||
-      !parsedPayload.createdAtTo ||
-      !parsedPayload.limit ||
-      !parsedPayload.page) {
+      !parsedPayload.createdAtTo
+    ) {
       throw new Error('Invalid payload');
     }
 
     const params: Params = {
       shipperId: parsedPayload.shipperId,
-      serviceId: parsedPayload.serviceId,
-      productId: parsedPayload.productId,
-      impositionPlaceId: parsedPayload.impositionPlaceId || 0,
+      serviceId: parsedPayload.serviceId || 0,
+      productId: parsedPayload.productId || 0,
+      impositionPlaceId: parsedPayload.impositionPlaceId || 0, // not used rigth now, need to be added later
       trackingId: parsedPayload.trackingId || 0,
-      chanelledNode: parsedPayload['chanelledNode.name'] || "",
-      moment: parsedPayload['moment.displayName'] || "",
-      createdAtFrom: parsedPayload.createdAtFrom,
-      createdAtTo: parsedPayload.createdAtTo,
+      chanelledNodeId: parsedPayload.chanelledNodeId || 0,  // not used rigth now, need to be added later
+      momentId: parsedPayload.momentId || 0,
+      createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
+      createdAtTo: parsedPayload.createdAtTo || Date.now(),
       sort: parsedPayload.sort || 'id',
       order: parsedPayload.order || 'DESC',
-      limit: parsedPayload.limit,
+      limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
-      page: parsedPayload.page
+      page: parsedPayload.page || 1 // no need to use
     };
     return params
   }
