@@ -44,9 +44,10 @@ function getBillableOrdersQuery() {
     AND "shipper"."id" = "productShipper"."shipperId" 
     AND ("product"."id" = $3 OR $3 = '0')
     AND "shipper"."isActive" = true
-    AND ("order"."trackingId" = $4 OR $4 = '0')
+    AND ("order"."trackingId" LIKE $4 OR $4 = '0')
     AND ("moment"."id" = $5 OR $5 = 0)
     AND "order"."createdAt" BETWEEN $6 AND $7
+    AND ("chanelledNode"."name" LIKE $8 OR $8 = '0')
   ORDER BY 
     "order"."id", "piece"."id", 
   `;

@@ -24,7 +24,7 @@ class Params {
 
   @IsNotEmpty()
   @IsString()
-  chanelledNodeId: string;
+  chanelledNode: string;
 
   @IsNotEmpty()
   @IsString()

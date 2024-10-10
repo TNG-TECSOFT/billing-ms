@@ -26,7 +26,8 @@ export class BillingService {
         validatedParams.trackingId,
         validatedParams.momentId,
         validatedParams.createdAtFrom,
-        validatedParams.createdAtTo
+        validatedParams.createdAtTo,
+        validatedParams.chanelledNode
       ];
 
       const query = getBillableOrdersQuery() + 
@@ -80,8 +81,8 @@ export class BillingService {
       serviceId: parsedPayload.serviceId || 0,
       productId: parsedPayload.productId || 0,
       impositionPlaceId: parsedPayload.impositionPlaceId || 0, // not used rigth now, need to be added later
-      trackingId: parsedPayload.trackingId || 0,
-      chanelledNodeId: parsedPayload.chanelledNodeId || 0,  // not used rigth now, need to be added later
+      trackingId: (parsedPayload.trackingId + '%') || '0',
+      chanelledNode: parsedPayload.chanelledNode || '0',
       momentId: parsedPayload.momentId || 0,
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
       createdAtTo: parsedPayload.createdAtTo || Date.now(),
