@@ -81,7 +81,7 @@ export class BillingService {
       serviceId: parsedPayload.serviceId || 0,
       productId: parsedPayload.productId || 0,
       impositionPlaceId: parsedPayload.impositionPlaceId || 0, // not used rigth now, need to be added later
-      trackingId: (parsedPayload.trackingId + '%') || '0',
+      trackingId: parsedPayload.trackingId == '0' ? parsedPayload.trackingId : parsedPayload.trackingId + '%',
       chanelledNode: parsedPayload.chanelledNode || '0',
       momentId: parsedPayload.momentId || 0,
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
