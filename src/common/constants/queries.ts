@@ -101,7 +101,7 @@ export function getBillableOrdersQuery() {
   //   LIMIT $12 OFFSET $13;
   // `;
 }
-export function getOrdersToSendQuery(){
+export function getAddOrdersToSendQuery(){
   return `
   INSERT INTO "order_to_billing" (
     "toMonth", 
@@ -158,5 +158,35 @@ export function getOrdersToSendQuery(){
     NULL AS "notifyInvoiceBy"
   FROM "order" o
   WHERE o."id" = ANY($2);   
+  `
+}
+
+export function getOrdersToSendQuery(){
+  return `
+    SELECT 
+    s.name AS shipper,
+    otb."createdAt" AS fechaRegistro,
+    o.id AS ordenId,
+    p.name AS producto,
+    sv.name AS servicio,
+    otb."productSku" AS productoTango,
+    n."name" AS nodoImposicion,
+    otb."quantity" AS cantidad,
+    otb."unitPrice" AS importeUnitario,
+    otb."insurancePercentage" AS porcentajeSeguro,
+    otb."insuranceValue" AS importeSeguro,
+    otb."lineTotal" AS total
+  FROM 
+    order_to_billing as otb
+  LEFT JOIN 
+    shipper as s ON otb."shipperId" = s."idShipper"
+  LEFT JOIN 
+    "order" as o ON otb."orderId" = o.id
+  LEFT JOIN 
+    product p ON otb."productId" = p.id
+  LEFT JOIN 
+    services as sv ON otb."serviceId" = sv.id
+  LEFT JOIN 
+  node as n on o.id = n.id
   `
 }

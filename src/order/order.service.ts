@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection, QueryRunner } from 'typeorm';
-import { getBillableOrdersQuery, getOrdersToSendQuery } from '../common/constants/queries';
+import { getBillableOrdersQuery, getAddOrdersToSendQuery } from '../common/constants/queries';
 import { AddOrderToBillingRequestDto } from './dto/add-order-to-send.dto';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class OrderService {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const query = getOrdersToSendQuery();
+      const query = getAddOrdersToSendQuery();
       const result = await queryRunner.query(query, paramsArray);
 
       await queryRunner.commitTransaction();
