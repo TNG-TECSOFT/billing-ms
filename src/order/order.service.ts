@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection, QueryRunner } from 'typeorm';
-import { getBillableOrdersQuery, getAddOrdersToSendQuery } from '../common/constants/queries';
-import { AddOrderToBillingRequestDto } from './dto/add-order-to-send.dto';
+import { getBillableOrdersQuery, getAddOrdersToSendQuery, getOrdersToSendQuery } from '../common/constants/queries';
+import { AddOrderToBillingRequestDto } from './dto/add-order-to-billing.dto';
+import { OrderToBillingRepository } from './repositories/order-to-billing.repository';
+import { GetOrderToBillingDto } from './dto/get-order-to-billing.dto';
 
 @Injectable()
 export class OrderService {
   constructor(
-    @InjectConnection() private readonly connection: Connection
+    @InjectConnection() private readonly connection: Connection,
+    private readonly orderToBillingRepository: OrderToBillingRepository
   ) {}
 
   async addOrderToBilling(ordersDto: AddOrderToBillingRequestDto): Promise<any> {
@@ -38,4 +41,7 @@ export class OrderService {
     }
   }
 
+  async getOrderToBilling(query: GetOrderToBillingDto): Promise<any> {
+    return await this.orderToBillingRepository.getOrdersToBilling(query);
+  }
 }

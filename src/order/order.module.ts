@@ -4,7 +4,8 @@ import { OrderService } from './order.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { envs } from '../config/env';
 import { OrderController } from './order.controller';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { OrderToBillingRepository } from './repositories/order-to-billing.repository';
 @Module({
   imports: [
     HttpModule,
@@ -18,6 +19,7 @@ import { OrderController } from './order.controller';
         },
       },
     ]),
+    TypeOrmModule.forFeature([OrderToBillingRepository])
   ],
   controllers: [OrderController],
   providers: [OrderService],
