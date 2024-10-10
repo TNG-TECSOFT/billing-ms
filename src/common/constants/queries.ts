@@ -103,3 +103,92 @@ export function getBillableOrdersQuery() {
   //   LIMIT $12 OFFSET $13;
   // `;
 }
+export function getAddOrdersToSendQuery(){
+  return `
+  INSERT INTO "order_to_billing" (
+    "toMonth", 
+    "toYear", 
+    "shipperId", 
+    "createdAt", 
+    "createdBy", 
+    "orderId", 
+    "productId", 
+    "serviceId", 
+    "trackingId", 
+    "productSku", 
+    "productInsuranceSku", 
+    "quantity", 
+    "insuranceSku", 
+    "insurancePercentage", 
+    "insuranceValue", 
+    "unitPrice", 
+    "lineTotal", 
+    "shippingPercentage", 
+    "shippingValue", 
+    "sendAt", 
+    "sendBy", 
+    "invoiceType", 
+    "invoiceNo", 
+    "notifyInvoiceAt", 
+    "notifyInvoiceBy"
+  )
+  SELECT
+    EXTRACT(MONTH FROM o."createdAt")::INT AS toMonth,
+    EXTRACT(YEAR FROM o."createdAt")::INT AS toYear,
+    $1 AS shipperId,
+    o."createdAt" AS "createdAt",
+    'usuario' AS "createdBy",
+    o."id" AS "orderId",
+    o."product" AS "productId",
+    o."service" AS "serviceId",
+    1 AS "trackingId",
+    'tangoArticle' AS "productSku",
+    'insuranceTangoArticle' AS "productInsuranceSku",
+    o."piecesQuantity" AS "quantity",
+    NULL AS "insuranceSku",
+    NULL AS "insurancePercentage",
+    0 AS "insuranceValue", 
+    10 AS "unitPrice", 
+    1000 AS "lineTotal", 
+    NULL AS "shippingPercentage",
+    50 AS "shippingValue", 
+    NULL AS "sendAt",
+    NULL AS "sendBy",
+    NULL AS "invoiceType",
+    NULL AS "invoiceNo",
+    NULL AS "notifyInvoiceAt",
+    NULL AS "notifyInvoiceBy"
+  FROM "order" o
+  WHERE o."id" = ANY($2);   
+  `
+}
+
+export function getOrdersToSendQuery(){
+  return `
+    SELECT 
+    s.name AS shipper,
+    otb."createdAt" AS fechaRegistro,
+    o.id AS ordenId,
+    p.name AS producto,
+    sv.name AS servicio,
+    otb."productSku" AS productoTango,
+    n."name" AS nodoImposicion,
+    otb."quantity" AS cantidad,
+    otb."unitPrice" AS importeUnitario,
+    otb."insurancePercentage" AS porcentajeSeguro,
+    otb."insuranceValue" AS importeSeguro,
+    otb."lineTotal" AS total
+  FROM 
+    order_to_billing as otb
+  LEFT JOIN 
+    shipper as s ON otb."shipperId" = s."idShipper"
+  LEFT JOIN 
+    "order" as o ON otb."orderId" = o.id
+  LEFT JOIN 
+    product p ON otb."productId" = p.id
+  LEFT JOIN 
+    services as sv ON otb."serviceId" = sv.id
+  LEFT JOIN 
+  node as n on o.id = n.id
+  `
+}

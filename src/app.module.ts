@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BillingModule } from './billing/billing.module';
+import { OrderModule } from './order/order.module';
 import { HttpModule } from '@nestjs/axios';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
@@ -23,6 +24,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
       inject: [ConfigService],
     }),
     BillingModule,
+    OrderModule,
     HttpModule,
     ClientsModule.register([
       {
