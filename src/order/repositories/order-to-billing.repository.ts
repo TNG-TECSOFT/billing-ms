@@ -52,12 +52,14 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
           pageCount++;
         }
 
-        return {
-          orders: orders,
-          total: total,
-          page: Number(query.params.page),
-          pageCount: pageCount
-      };
+        ordersMap.set('orders', ordersData);
+        ordersMap.set('count', count);
+        ordersMap.set('page', Number(query.params.page));
+        ordersMap.set('pageCount', pageCount);
+        ordersMap.set('total', total);
+        ordersMap.set('totalAmount', totalAmount);
+
+        return ordersMap;
     }
 
 }
