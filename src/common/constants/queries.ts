@@ -101,3 +101,62 @@ export function getBillableOrdersQuery() {
   //   LIMIT $12 OFFSET $13;
   // `;
 }
+export function getOrdersToSendQuery(){
+  return `
+  INSERT INTO "order_to_billing" (
+    "toMonth", 
+    "toYear", 
+    "shipperId", 
+    "createdAt", 
+    "createdBy", 
+    "orderId", 
+    "productId", 
+    "serviceId", 
+    "trackingId", 
+    "productSku", 
+    "productInsuranceSku", 
+    "quantity", 
+    "insuranceSku", 
+    "insurancePercentage", 
+    "insuranceValue", 
+    "unitPrice", 
+    "lineTotal", 
+    "shippingPercentage", 
+    "shippingValue", 
+    "sendAt", 
+    "sendBy", 
+    "invoiceType", 
+    "invoiceNo", 
+    "notifyInvoiceAt", 
+    "notifyInvoiceBy"
+  )
+  SELECT
+    EXTRACT(MONTH FROM o."createdAt")::INT AS toMonth,
+    EXTRACT(YEAR FROM o."createdAt")::INT AS toYear,
+    $1 AS shipperId,
+    o."createdAt" AS "createdAt",
+    'usuario' AS "createdBy",
+    o."id" AS "orderId",
+    o."product" AS "productId",
+    o."service" AS "serviceId",
+    1 AS "trackingId",
+    'tangoArticle' AS "productSku",
+    'insuranceTangoArticle' AS "productInsuranceSku",
+    o."piecesQuantity" AS "quantity",
+    NULL AS "insuranceSku",
+    NULL AS "insurancePercentage",
+    0 AS "insuranceValue", 
+    10 AS "unitPrice", 
+    1000 AS "lineTotal", 
+    NULL AS "shippingPercentage",
+    50 AS "shippingValue", 
+    NULL AS "sendAt",
+    NULL AS "sendBy",
+    NULL AS "invoiceType",
+    NULL AS "invoiceNo",
+    NULL AS "notifyInvoiceAt",
+    NULL AS "notifyInvoiceBy"
+  FROM "order" o
+  WHERE o."id" = ANY($2);   
+  `
+}
