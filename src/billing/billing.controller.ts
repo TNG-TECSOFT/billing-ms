@@ -13,6 +13,15 @@ export class BillingController {
   @MessagePattern('getBillableOrders')
   async handleGetBillableOrders(@Payload() payload: BillableOrdersRequestDto): Promise<any> {
     const { params } = payload;
-    return await this.billingService.getBillableOrders(params);
+    const resultMap = await this.billingService.getBillableOrders(params)
+    
+    return {
+      data: resultMap.get('orders'),
+      count: resultMap.get('count'),
+      total: resultMap.get('total'),
+      page: resultMap.get('page'),
+      pageCount: resultMap.get('pageCount'),
+      totalAmount: resultMap.get('totalAmount'),
+    };
   }
 }
