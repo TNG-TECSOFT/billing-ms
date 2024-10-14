@@ -87,7 +87,7 @@ export class BillingService {
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
       createdAtTo: parsedPayload.createdAtTo || Date.now(),
       // sort: parsedPayload.sort || '"stagesHistory"."createdAt"',
-      sort: '"stagesHistory"."createdAt"',
+      sort: '"stages_history"."createdAt"',
       order: parsedPayload.order || 'DESC',
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),

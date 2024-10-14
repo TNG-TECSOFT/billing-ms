@@ -15,7 +15,7 @@ export class OrderService {
 
   async addOrderToBilling(ordersDto: AddOrderToBillingRequestDto): Promise<any> {
     const queryRunner : QueryRunner = this.connection.createQueryRunner();
-    const { shipperId, ordersIds } = ordersDto.orderInfo;
+    const { shipperId, ordersIds = [] } = ordersDto.orderInfo;
 
     const paramsArray = [
       shipperId,

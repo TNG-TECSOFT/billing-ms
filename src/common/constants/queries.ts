@@ -51,13 +51,13 @@ WHERE
     AND ("stages_history"."momentId" = $5 OR $5 = 0)
     AND "order"."createdAt" BETWEEN $6 AND $7
     AND ("chanelledNode"."name" LIKE $8 OR $8 = '0')
-	AND (
+    AND (
       ("billing_rule"."payforimpositionplace" = false AND $9 = 0) 
       OR 
       ("billing_rule"."payforimpositionplace" = true AND "billing_rule"."impositionplaceid" = $9)
     ) 
 ORDER BY 
-    "order"."id", "piece"."id" 
+    "order"."id", "piece"."id",
   `;
 }
 
@@ -99,17 +99,17 @@ function getAddOrdersToSendQuery(){
     o."id" AS "orderId",
     o."product" AS "productId",
     o."service" AS "serviceId",
-    1 AS "trackingId",
+    NULL AS "trackingId",
     'tangoArticle' AS "productSku",
     'insuranceTangoArticle' AS "productInsuranceSku",
     o."piecesQuantity" AS "quantity",
     NULL AS "insuranceSku",
     NULL AS "insurancePercentage",
     0 AS "insuranceValue", 
-    10 AS "unitPrice", 
-    1000 AS "lineTotal", 
+    0 AS "unitPrice", 
+    0 AS "lineTotal", 
     NULL AS "shippingPercentage",
-    50 AS "shippingValue", 
+    0 AS "shippingValue", 
     NULL AS "sendAt",
     NULL AS "sendBy",
     NULL AS "invoiceType",
