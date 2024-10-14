@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
 
 class Params {
   @IsNotEmpty()
@@ -67,6 +66,10 @@ class BillableOrdersRequestDto {
   @IsNotEmpty()
   @IsString()
   params: string;
+
+  @IsNotEmpty()
+  @IsString()
+  authorization_core: string;
 }
 
 export { BillableOrdersRequestDto, Params };
