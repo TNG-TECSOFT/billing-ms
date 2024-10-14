@@ -4,6 +4,7 @@ import { BillingService } from './billing.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { envs } from '../config/env';
 import { BillingController } from './billing.controller';
+import { BillingRepository } from './billing.repository';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { BillingController } from './billing.controller';
     ]),
   ],
   controllers: [BillingController],
-  providers: [BillingService],
+  providers: [BillingService, BillingRepository],
   exports: [BillingService],
 })
 export class BillingModule {}

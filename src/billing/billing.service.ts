@@ -1,50 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/typeorm';
-import { Connection, QueryRunner } from 'typeorm';
 import { Params } from './dto/billable-orders-request.dto';
-import { getBillableOrdersQuery } from '../common/constants/queries';
+import { BillingRepository } from './billing.repository';
 
 @Injectable()
 export class BillingService {
-  constructor(
-    @InjectConnection() private readonly connection: Connection
-  ) {}
+  constructor(private readonly repository: BillingRepository) {}
 
-  async getBillableOrders(params: string): Promise<any> {
-    const queryRunner: QueryRunner = this.connection.createQueryRunner();
-    
+  async getBillableOrders(params: string): Promise<any> {    
     try {
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
       const validatedParams: Params = this.validateParamsFromPayload(params);
 
-      const paramsArray = [
-        validatedParams.shipperId,
-        validatedParams.serviceId,
-        validatedParams.productId,
-        validatedParams.trackingId,
-        validatedParams.momentId,
-        validatedParams.createdAtFrom,
-        validatedParams.createdAtTo,
-        validatedParams.chanelledNode
-      ];
+      const results = await this.repository.getBillableOrders(validatedParams);
 
-      const query = getBillableOrdersQuery() + 
-        `${validatedParams.sort} ${validatedParams.order} LIMIT ${validatedParams.limit} OFFSET ${validatedParams.offset};`;
-      const queryCount = `SELECT COUNT(*) 
-      FROM (` + getBillableOrdersQuery() +
-        `${validatedParams.sort} ${validatedParams.order} ) AS subquery;`;
-      const result = await queryRunner.query(query, paramsArray);
-      const resultCount = await queryRunner.query(queryCount, paramsArray);
+      const transformedData = this.processResult(results.data);
 
-      const transformedData = this.processResult(result);
-
-      const count = resultCount[0].count;
-      const total = 0; // need to be added later
+      const count = validatedParams.limit;
+      const total = results.count;
       const page = validatedParams.page;
       const pageCount = Math.ceil(count / validatedParams.limit);
-      const totalAmount = 0; // need to be added later
+      const totalAmount = 0; // needs to be added later
 
       const ordersMap: Map<string, any> = new Map();
       ordersMap.set('orders', transformedData);
@@ -53,16 +27,11 @@ export class BillingService {
       ordersMap.set('pageCount', pageCount);
       ordersMap.set('total', total);
       ordersMap.set('totalAmount', totalAmount);
-      
-      await queryRunner.commitTransaction();
 
       return ordersMap;
     } catch (error) {
-      await queryRunner.rollbackTransaction();
       throw new Error(`Error executing custom query: ${error.message}`);
-    } finally {
-      await queryRunner.release();
-    }
+    } 
   }
 
   private validateParamsFromPayload(payload: string): Params {
@@ -80,18 +49,17 @@ export class BillingService {
       shipperId: parsedPayload.shipperId,
       serviceId: parsedPayload.serviceId || 0,
       productId: parsedPayload.productId || 0,
-      impositionPlaceId: parsedPayload.impositionPlaceId || 0, // not used rigth now, need to be added later
+      impositionPlaceId: parsedPayload.impositionPlaceId || 0,
       trackingId: parsedPayload.trackingId == '0' ? parsedPayload.trackingId : parsedPayload.trackingId + '%',
       chanelledNode: parsedPayload.chanelledNode || '0',
       momentId: parsedPayload.momentId || 0,
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
       createdAtTo: parsedPayload.createdAtTo || Date.now(),
-      // sort: parsedPayload.sort || '"stagesHistory"."createdAt"',
-      sort: '"stages_history"."createdAt"',
+      sort: parsedPayload.sort == 'id' ? '' : `, "${parsedPayload.sort}"`,
       order: parsedPayload.order || 'DESC',
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
-      page: parsedPayload.page || 1 // no need to use
+      page: parsedPayload.page || 1
     };
     return params
   }
@@ -130,7 +98,7 @@ export class BillingService {
                         },
                     ],
                 },
-                billingAmount: 500, // Placeholder, can be dynamically set if needed
+                billingAmount: 500, // Placeholder, needs to be calculated
             };
             acc.push(existingOrder);
         }
@@ -153,7 +121,7 @@ export class BillingService {
                     } : null,
                 },
             ],
-            price: 500, // Placeholder, can be dynamically set if needed
+            price: 500, // Placeholder, needs to be calculated
         };
 
         // Add the piece to the existing order's pieces array
