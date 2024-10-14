@@ -66,6 +66,10 @@ class BillableOrdersRequestDto {
 
   @IsNotEmpty()
   @IsString()
+  authorization_core: string;
+
+  @IsNotEmpty()
+  @IsString()
   params: string;
 }
 

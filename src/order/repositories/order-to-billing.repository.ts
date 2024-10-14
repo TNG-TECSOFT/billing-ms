@@ -23,16 +23,22 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         let totalAmount: number = 0;
 
         let builder = getManager().createQueryBuilder(OrderToBilling, 'order');
+        // builder.where(idShipper);
+        // builder.where(sendAt = null);
+
+        query.params.page = query.params.page ?? 1;
+        query.params.limit = query.params.limit ?? 10;
+        query.params.order = query.params.order ?? 'ASC';
+        query.params.sort = query.params.sort ?? 'createdAt';
 
         const queryOrder = query.params.order == 'ASC' ? "ASC" : "DESC";
-
-        if (!!query.params.sort && query.params.order) {
-            builder.orderBy(`${query.params.sort}`, queryOrder);
-        }
-
-        if (query.params.page > 0 && query.params.limit) {
-            builder = builder.take(query.params.limit).skip(query.params.limit * (query.params.page - 1));
-        }
+        //if (!!query.params.sort && query.params.order) {
+          builder.orderBy(`${query.params.sort}`, queryOrder);
+        //}
+        
+        //if (query.params.page > 0 && query.params.limit) {
+          builder = builder.take(query.params.limit).skip(query.params.limit * (query.params.page - 1));
+        //}
 
         const [ordersData, total] = await Promise.all([
             builder.getMany(),
