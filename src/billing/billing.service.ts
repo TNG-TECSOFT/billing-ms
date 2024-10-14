@@ -60,7 +60,7 @@ export class BillingService {
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
       page: parsedPayload.page || 1,
-      selectAll: parsedPayload.selectAll || true
+      selectAll: parsedPayload.selectAll || false
     };
     return params
   }
