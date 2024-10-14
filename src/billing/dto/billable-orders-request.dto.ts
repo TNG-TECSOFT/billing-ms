@@ -1,5 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, IsBoolean } from 'class-validator';
 
 class Params {
   @IsNotEmpty()
@@ -57,6 +56,10 @@ class Params {
   @IsOptional()
   @IsNumber()
   offset: number;
+
+  @IsOptional()
+  @IsBoolean()
+  selectAll: boolean;
 }
 
 class BillableOrdersRequestDto {

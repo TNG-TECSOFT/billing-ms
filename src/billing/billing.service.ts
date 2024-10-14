@@ -59,7 +59,8 @@ export class BillingService {
       order: parsedPayload.order || 'DESC',
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
-      page: parsedPayload.page || 1
+      page: parsedPayload.page || 1,
+      selectAll: parsedPayload.selectAll || true
     };
     return params
   }

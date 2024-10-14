@@ -26,8 +26,9 @@ export class BillingRepository{
         params.impositionPlaceId
       ];
 
-      const query = getBillableOrdersQuery() + 
-        `${params.sort} ${params.order} LIMIT ${params.limit} OFFSET ${params.offset};`;
+      let query = `${getBillableOrdersQuery()} ${params.sort} ${params.order}`;
+      query += params.selectAll ? ';' : ` LIMIT ${params.limit} OFFSET ${params.offset};`;
+
       const queryCount = `SELECT COUNT(*) 
       FROM (` + getBillableOrdersQuery() +
         `${params.sort} ${params.order} ) AS subquery;`;
