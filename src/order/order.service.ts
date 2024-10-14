@@ -44,4 +44,8 @@ export class OrderService {
   async getOrderToBilling(query: GetOrderToBillingDto): Promise<any> {
     return await this.orderToBillingRepository.getOrdersToBilling(query);
   }
+
+  async deleteOrder(id: number): Promise<boolean> {
+    return await this.orderToBillingRepository.deleteOrderById(id);
+  }
 }

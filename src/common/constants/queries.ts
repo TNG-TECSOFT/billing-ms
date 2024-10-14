@@ -96,7 +96,7 @@ function getAddOrdersToSendQuery(){
     'insuranceTangoArticle' AS "productInsuranceSku",
     o."piecesQuantity" AS "quantity",
     NULL AS "insuranceSku",
-    NULL AS "insurancePercentage",
+    100 AS "insurancePercentage",
     0 AS "insuranceValue", 
     10 AS "unitPrice", 
     1000 AS "lineTotal", 
@@ -116,6 +116,7 @@ function getAddOrdersToSendQuery(){
 function getOrdersToSendQuery(){
   return `
     SELECT 
+    CONCAT(EXTRACT(MONTH FROM NOW()), '/', EXTRACT(YEAR FROM NOW())) AS "periodo",
     s.name AS shipper,
     otb."createdAt" AS fechaRegistro,
     o.id AS ordenId,
@@ -128,18 +129,18 @@ function getOrdersToSendQuery(){
     otb."insurancePercentage" AS porcentajeSeguro,
     otb."insuranceValue" AS importeSeguro,
     otb."lineTotal" AS total
-  FROM 
-    order_to_billing as otb
-  LEFT JOIN 
-    shipper as s ON otb."shipperId" = s."idShipper"
-  LEFT JOIN 
-    "order" as o ON otb."orderId" = o.id
-  LEFT JOIN 
-    product p ON otb."productId" = p.id
-  LEFT JOIN 
-    services as sv ON otb."serviceId" = sv.id
-  LEFT JOIN 
-  node as n on o.id = n.id
+      FROM 
+          order_to_billing as otb
+      LEFT JOIN 
+          shipper as s ON otb."shipperId" = s.id
+      LEFT JOIN 
+          "order" as o ON otb."orderId" = o.id
+      LEFT JOIN 
+          product p ON otb."productId" = p.id
+      LEFT JOIN 
+          services as sv ON otb."serviceId" = sv.id
+      LEFT JOIN 
+        node as n on o."chanelledNodeId" = n.id
   `
 }
 

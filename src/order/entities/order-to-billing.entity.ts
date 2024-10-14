@@ -1,15 +1,8 @@
 import {
     BaseEntity,
     Column,
-    CreateDateColumn,
     Entity,
-    JoinColumn,
-    ManyToMany,
-    ManyToOne,
-    OneToMany,
-    OneToOne,
     PrimaryGeneratedColumn,
-    UpdateDateColumn,
   } from 'typeorm';
 
   @Entity()
@@ -91,4 +84,7 @@ import {
 
     @Column({nullable: false})
     notifyInvoiceBy: string;
+
+    @Column({nullable: true})
+    chanelledNodeId: number;
   }
