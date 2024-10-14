@@ -57,7 +57,7 @@ WHERE
       ("billing_rule"."payforimpositionplace" = true AND "billing_rule"."impositionplaceid" = $9)
     ) 
 ORDER BY 
-    "order"."id", "piece"."id",
+    "order"."id", "piece"."id"
   `;
 }
 
