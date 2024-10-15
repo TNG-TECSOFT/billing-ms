@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsArray, IsString, ValidateNested, isString, IsOptional} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsArray, IsString, ValidateNested, isString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class GetOrderToBillingParamsDto {
@@ -11,7 +11,9 @@ class GetOrderToBillingParamsDto {
     page: number;
     @IsOptional()
     limit: number;
-    
+    @IsString()
+    shipperId: string;
+
 }
 
 class GetOrderToBillingDto {
@@ -24,4 +26,4 @@ class GetOrderToBillingDto {
     params: GetOrderToBillingParamsDto
 }
 
-export {GetOrderToBillingParamsDto, GetOrderToBillingDto}
+export { GetOrderToBillingParamsDto, GetOrderToBillingDto }

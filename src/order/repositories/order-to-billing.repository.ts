@@ -49,6 +49,8 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         node as n on o."chanelledNodeId" = n.id
     `;
 
+    rawQuery += `WHERE s.id = ${query.params.shipperId} AND otb."sendAt" is NULL`
+
     if (!!query.params.sort && query.params.order) {
       const queryOrder = query.params.order == 'ASC' ? 'ASC' : 'DESC';
       rawQuery += ` ORDER BY ${query.params.sort} ${queryOrder}`;
@@ -57,7 +59,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
     }
 
     if (query.params.page >= 1 && query.params.limit) {
-      const skip = query.params.limit * (query.params.page -1);
+      const skip = query.params.limit * (query.params.page - 1);
       rawQuery += ` LIMIT ${query.params.limit} OFFSET ${skip}`;
     }
 
