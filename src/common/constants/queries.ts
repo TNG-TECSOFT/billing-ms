@@ -17,13 +17,15 @@ function getBillableOrdersQuery() {
     "piece"."height" AS "piece_height", 
     "piece"."width" AS "piece_width", 
     "piece"."length" AS "piece_length", 
-    "piece"."weight" AS "piece_weight", 
+    "piece"."weight" AS "piece_weight",
+    "piece"."declaredValue" AS "piece_declaredValue",
     "stages_history"."id" AS "stagesHistory_id", 
     "stages_history"."createdAt" AS "stagesHistory_createdAt", 
     "moments"."id" AS "moment_id", 
     "moments"."display_name" AS "moment_display_name", 
     "product"."id" AS "product_id", 
-    "product_shipper"."dimensionalFactor" AS "productShipper_dimensionalFactor"
+    "product_shipper"."dimensionalFactor" AS "productShipper_dimensionalFactor",
+    "billing_rule"."id" AS "billingRule_id"
 FROM 
     "order"
     INNER JOIN "shipper" ON "shipper"."id" = "order"."shipper"
