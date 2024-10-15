@@ -25,13 +25,17 @@ export class OrderController {
   }
 
   @UseGuards(AuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true}))
+  @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('deleteOrderToBilling')
-  async deleteOrder(@Payload('payload') payload: DeleteOrderToBillingParamsDto): Promise<any> {
-    const deleted = await this.orderService.deleteOrder(payload.id);
+  async deleteOrder(@Payload() data: DeleteOrderToBillingDto): Promise<any> {
+    
+    const { params } = data;
+    const { id } = params;
+  
+    const deleted = await this.orderService.deleteOrder(id);
     if (!deleted) {
       throw new NotFoundException('Orden no encontrada');
     }
-
+    return { message: 'Orden eliminada correctamente', id };
   }
 }

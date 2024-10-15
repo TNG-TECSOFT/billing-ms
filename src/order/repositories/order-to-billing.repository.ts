@@ -2,6 +2,7 @@ import {
   EntityRepository,
   getManager,
   Repository,
+  getConnection
 } from 'typeorm';
 import { OrderToBilling } from '../entities/order-to-billing.entity';
 import { GetOrderToBillingDto } from '../dto/get-order-to-billing.dto';
@@ -15,13 +16,12 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
     const ordersMap: Map<string, any> = new Map();
 
     let count: number = 0;
-    let totalAmount: number = 0;
 
     let builder = getManager().createQueryBuilder(OrderToBilling, 'order');
 
-    // Construir la consulta personalizada utilizando la consulta SQL de getOrdersToSendQuery
     let rawQuery = `
       SELECT 
+        otb.id AS "id",
         CONCAT(EXTRACT(MONTH FROM NOW()), '/', EXTRACT(YEAR FROM NOW())) AS "periodo",
         s.name AS shipper,
         otb."createdAt" AS "fechaRegistro",
@@ -52,10 +52,12 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
     if (!!query.params.sort && query.params.order) {
       const queryOrder = query.params.order == 'ASC' ? 'ASC' : 'DESC';
       rawQuery += ` ORDER BY ${query.params.sort} ${queryOrder}`;
+    } else {
+      rawQuery += ` ORDER BY otb.id ASC`;
     }
 
-    if (query.params.page > 0 && query.params.limit) {
-      const skip = query.params.limit * (query.params.page - 1);
+    if (query.params.page >= 1 && query.params.limit) {
+      const skip = query.params.limit * (query.params.page -1);
       rawQuery += ` LIMIT ${query.params.limit} OFFSET ${skip}`;
     }
 
@@ -65,24 +67,27 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
     ]);
 
     count = ordersData.length;
-    let pageCount = count / Number(query.params.limit);
 
-    if (pageCount <= 1) {
-      pageCount = Math.round(pageCount);
-    } else {
-      pageCount = Math.round(pageCount + 1);
-    }
+    let pageCount = Math.ceil(total / Number(query.params.limit));
 
-    if (pageCount <= 0) {
-      pageCount++;
-    }
+    const totalsQuery = `
+      SELECT 
+        SUM(otb."lineTotal") AS "totalAmountToPay",
+        SUM(otb."insuranceValue") AS "totalAmountInsurance"
+      FROM order_to_billing otb
+    `;
+
+    const totalsResult = await getManager().query(totalsQuery);
+    const totalAmountToPay = parseFloat(totalsResult[0].totalAmountToPay) || 0;
+    const totalAmountInsurance = parseFloat(totalsResult[0].totalAmountInsurance) || 0;
 
     ordersMap.set('orders', ordersData);
     ordersMap.set('count', count);
     ordersMap.set('page', Number(query.params.page));
     ordersMap.set('pageCount', pageCount);
     ordersMap.set('total', total);
-    ordersMap.set('totalAmount', totalAmount);
+    ordersMap.set('totalAmountToPay', totalAmountToPay);
+    ordersMap.set('totalAmountInsurance', totalAmountInsurance);
 
     return {
       data: ordersMap.get('orders'),
@@ -90,13 +95,20 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       total: ordersMap.get('total'),
       page: ordersMap.get('page'),
       pageCount: ordersMap.get('pageCount'),
-      totalAmount: ordersMap.get('totalAmount'),
+      totalAmountToPay: ordersMap.get('totalAmountToPay'),
+      totalAmountInsurance: ordersMap.get('totalAmountInsurance'),
     };
   }
 
-
   async deleteOrderById(id: number): Promise<boolean> {
-    const result = await getManager().query(`DELETE FROM order_to_billing WHERE id = $1`, [id]);
-    return result.affectedRows > 0;
+    const result = await getConnection()
+      .createQueryBuilder()
+      .delete()
+      .from('order_to_billing')
+      .where('id = :id', { id })
+      .execute();
+
+    const response = result.affected > 0;
+    return response;
   }
 }

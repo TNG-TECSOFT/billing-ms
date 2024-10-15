@@ -1,20 +1,21 @@
-import { IsString, ValidateNested, IsNumber } from 'class-validator';
+// delete-order-to-billing.dto.ts
+import { IsString, IsNotEmpty, ValidateNested, IsObject, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class DeleteOrderToBillingParamsDto {
-
+export class DeleteOrderToBillingParamsDto {
     @IsNumber()
+    @IsNotEmpty()
     id: number;
 }
 
-class DeleteOrderToBillingDto {
+export class DeleteOrderToBillingDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
 
-    @IsString()
-    token: string;
-
-    @ValidateNested()
-    @Type(() => DeleteOrderToBillingParamsDto)
-    params: DeleteOrderToBillingParamsDto;
+  @ValidateNested()
+  @Type(() => DeleteOrderToBillingParamsDto)
+  params: DeleteOrderToBillingParamsDto;
 }
 
-export {DeleteOrderToBillingParamsDto, DeleteOrderToBillingDto}
+
