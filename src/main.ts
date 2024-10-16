@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import { ValidationError} from 'class-validator';
+
 import { envs } from './config/env';
 
 async function bootstrap() {
@@ -15,8 +17,17 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
+      transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        return new BadRequestException(
+          errors.map((error) => ({
+            property: error.property,
+            constraints: error.constraints,
+          })),
+        );
+      },
     }),
   );
   

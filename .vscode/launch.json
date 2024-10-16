@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Docker",
+            "port": 9230,
+            "address": "127.0.0.1",
+            "localRoot": "${workspaceFolder}/src", // Cambia esto si tu API está en otro lugar
+            "remoteRoot": "/urbano_core/ms/billing/src",
+            "restart": true // Ruta en el contenedor
+        }
+    ]
+}
