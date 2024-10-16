@@ -31,11 +31,15 @@ export class OrderService {
 
       await queryRunner.commitTransaction();
       
-      return result;
+      return {
+        statusCode: 200,
+        message: `Se agregaron las siguientes ordenes en espera de enviar a facturar: ${ordersIds.join(', ')}`,
+        data: ordersIds
+      }
       
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new Error(`Error executing custom query: ${error.message}`);
+      throw new Error(`Error ejecutando query: ${error.message}`);
     } finally {
       await queryRunner.release();
     }
