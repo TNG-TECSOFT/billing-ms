@@ -1,73 +1,78 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/typeorm';
-import { Connection, QueryRunner } from 'typeorm';
 import { Params } from './dto/billable-orders-request.dto';
-import { getBillableOrdersQuery } from '../common/constants/queries';
+import { BillingRepository } from './billing.repository';
+import { envs } from '../config/env';
+import { HttpService } from '@nestjs/axios';
+import { AxiosResponse } from 'axios';
+import { 
+  CriteriaLabel, 
+  Variances, 
+  calculatePieceBillingAmountByWeight, 
+  isValueBetweenRange, 
+  calculatePriceByVariance } from '../common/utils/billingRules.utils';
 
 @Injectable()
 export class BillingService {
   constructor(
-    @InjectConnection() private readonly connection: Connection
+    private readonly repository: BillingRepository,
+    private readonly httpService: HttpService
   ) {}
 
-  async getBillableOrders(params: string): Promise<any> {
-    const queryRunner: QueryRunner = this.connection.createQueryRunner();
-    
+  async getBillableOrders(params: string, authorization: string): Promise<any> {    
     try {
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
       const validatedParams: Params = this.validateParamsFromPayload(params);
+      // Get the billable orders from the database
+      const results = await this.repository.getBillableOrders(validatedParams);
 
-      const paramsArray = [
-        validatedParams.shipperId,
-        validatedParams.serviceId,
-        validatedParams.productId,
-        validatedParams.trackingId,
-        validatedParams.momentId,
-        validatedParams.createdAtFrom,
-        validatedParams.createdAtTo,
-        validatedParams.chanelledNode
-      ];
+      const billingRulesParams = {
+        shipperId: validatedParams.shipperId,
+        serviceId: validatedParams.serviceId,
+        productId: validatedParams.productId,
+        impositionPlaceId: validatedParams.impositionPlaceId,
+        momentId: validatedParams.momentId
+      };
 
-      const query = getBillableOrdersQuery() + 
-        `${validatedParams.sort} ${validatedParams.order} LIMIT ${validatedParams.limit} OFFSET ${validatedParams.offset};`;
-      const queryCount = `SELECT COUNT(*) 
-      FROM (` + getBillableOrdersQuery() +
-        `${validatedParams.sort} ${validatedParams.order} ) AS subquery;`;
-      const result = await queryRunner.query(query, paramsArray);
-      const resultCount = await queryRunner.query(queryCount, paramsArray);
+      // Get the billing rules from the core API
+      const billingRules = await this.getBillingRules(billingRulesParams, authorization);
+      // Format the data
+      const transformedData = this.processResult(results.data);
+      // Set the prices for the orders
+      const billableOrders = this.setOrdersPrices(transformedData, billingRules);
+      
 
-      const transformedData = this.processResult(result);
-
-      const count = resultCount[0].count;
-      const total = 0; // need to be added later
+      // Prepare the response object
+      const count = validatedParams.limit;
+      const total = results.count;
       const page = validatedParams.page;
       const pageCount = Math.ceil(count / validatedParams.limit);
-      const totalAmount = 0; // need to be added later
+      const totalAmount = billableOrders.totalAmount; // needs to be added later
 
+      // Create a map to store the orders and the pagination data
       const ordersMap: Map<string, any> = new Map();
-      ordersMap.set('orders', transformedData);
+      ordersMap.set('orders', billableOrders.orders);
       ordersMap.set('count', count);
       ordersMap.set('page', Number(page));
       ordersMap.set('pageCount', pageCount);
       ordersMap.set('total', total);
       ordersMap.set('totalAmount', totalAmount);
-      
-      await queryRunner.commitTransaction();
 
-      return ordersMap;
+      return {
+        data: ordersMap.get('orders'),
+        count: ordersMap.get('count'),
+        total: ordersMap.get('total'),
+        page: ordersMap.get('page'),
+        pageCount: ordersMap.get('pageCount'),
+        totalAmount: ordersMap.get('totalAmount'),
+      };
     } catch (error) {
-      await queryRunner.rollbackTransaction();
       throw new Error(`Error executing custom query: ${error.message}`);
-    } finally {
-      await queryRunner.release();
-    }
+    } 
   }
 
   private validateParamsFromPayload(payload: string): Params {
     const parsedPayload = JSON.parse(payload);
 
+    // Validate the payload
     if (!parsedPayload ||
       !parsedPayload.shipperId ||
       !parsedPayload.createdAtFrom ||
@@ -76,22 +81,23 @@ export class BillingService {
       throw new Error('Invalid payload');
     }
 
+    // Complete the params object with default values when necessary
     const params: Params = {
       shipperId: parsedPayload.shipperId,
       serviceId: parsedPayload.serviceId || 0,
       productId: parsedPayload.productId || 0,
-      impositionPlaceId: parsedPayload.impositionPlaceId || 0, // not used rigth now, need to be added later
+      impositionPlaceId: parsedPayload.impositionPlaceId || 0,
       trackingId: parsedPayload.trackingId == '0' ? parsedPayload.trackingId : parsedPayload.trackingId + '%',
       chanelledNode: parsedPayload.chanelledNode || '0',
       momentId: parsedPayload.momentId || 0,
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
       createdAtTo: parsedPayload.createdAtTo || Date.now(),
-      // sort: parsedPayload.sort || '"stagesHistory"."createdAt"',
-      sort: '"stagesHistory"."createdAt"',
+      sort: parsedPayload.sort == 'id' ? '' : `, "${parsedPayload.sort}"`,
       order: parsedPayload.order || 'DESC',
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
-      page: parsedPayload.page || 1 // no need to use
+      page: parsedPayload.page || 1,
+      selectAll: parsedPayload.selectAll || false
     };
     return params
   }
@@ -130,7 +136,10 @@ export class BillingService {
                         },
                     ],
                 },
-                billingAmount: 500, // Placeholder, can be dynamically set if needed
+                billingRuleId: order.billingRule_id,
+                billingAmount: 0,
+                insuranceValue: 0,
+                skip: false,
             };
             acc.push(existingOrder);
         }
@@ -143,6 +152,7 @@ export class BillingService {
             width: order.piece_width,
             length: order.piece_length,
             weight: order.piece_weight,
+            declaredValue: order.piece_declaredValue,
             stagesHistory: [
                 {
                     id: order.stagesHistory_id,
@@ -153,7 +163,7 @@ export class BillingService {
                     } : null,
                 },
             ],
-            price: 500, // Placeholder, can be dynamically set if needed
+            price: 0, // Needs to be calculated
         };
 
         // Add the piece to the existing order's pieces array
@@ -163,5 +173,129 @@ export class BillingService {
     }, []);
 
     return transformedData;
+  }
+
+  private async getBillingRules(params: any, authorization: string): Promise<any> {
+    const headers = {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      Authorization: authorization,
+      'User-Agent': 'axios/1.7.7'
+    }
+
+    // Call the core API to get the matching billing rules
+    const url = `${envs.core_api_url}/billing-rules/list`;
+    const response$: Promise<AxiosResponse<any>> = this.httpService.get<any>(url, {
+      params,
+      headers: headers,
+    }).toPromise();
+
+    const response = await response$;
+
+    return response.data.data;
+  }
+
+  private setOrdersPrices(orders: any[], billingRules: any[]): any {
+    let totalAmount = 0;
+    for (const order of orders) {
+      const rule = billingRules.find((rule) => rule.id === order.billingRuleId);
+      let billingAmount = 0;
+      if (!!rule) {
+        let zone = rule.zone?.find((zone) =>
+          isValueBetweenRange({
+            value: Number(order.zipCode),
+            max: zone.cpminrange, 
+            min: zone.cpmaxrange,
+          }),
+        ) || null;
+        if (rule.criterion === CriteriaLabel.ZONA && !zone) {
+          order.skip = true;
+          continue;
+        }
+        const variance = rule.variance[0].variance;
+        if (variance !== Variances.UNIDADES) {
+          for (const piece of order.pieces) {
+            let calculatedPrice: number = 0;
+            // Check piece weigth
+            switch (true){
+              case (piece.weight == null || piece.weight == 0):
+                piece.weight = rule.defaultbillableweight;
+                break;
+              case (piece.weight < rule.minbillableweight):
+                piece.weight = rule.minbillableweight;
+                break;
+              default:
+                break;
+            }
+            if (rule.criterion === CriteriaLabel.ZONA) {
+              calculatedPrice = calculatePieceBillingAmountByWeight({
+                piece,
+                prices: rule.prices.filter(
+                  (p) => p.zone === zone.name,
+                ),
+                variance,
+                dimensionalFactor:
+                  order.product.productShippers[0].dimensionalFactor,
+              });
+            } else if (rule.criterion === CriteriaLabel.NODO) {
+              calculatedPrice = calculatePieceBillingAmountByWeight({
+                piece,
+                prices: rule.prices.filter(
+                  (p) => p.node === order.chanelledNode.name,
+                ),
+                variance,
+                dimensionalFactor:
+                  order.product.productShippers[0].dimensionalFactor,
+              });
+            }
+            piece.price = calculatedPrice;
+            billingAmount += calculatedPrice;
+          }
+        } else {
+          let calculatedPrice = 0;
+          if (rule.criterion === CriteriaLabel.ZONA) {
+            calculatedPrice = calculatePriceByVariance({
+              prices: rule.prices.filter((p) => p.zone === zone.name),
+              weight: order.pieces.length,
+            });
+          } else if (rule.criterion === CriteriaLabel.NODO) {
+            calculatedPrice = calculatePriceByVariance({
+              prices: rule.prices.filter(
+                (p) => p.node === order.chanelledNode.name,
+              ),
+              weight: order.pieces.length,
+            });
+          }
+          billingAmount += calculatedPrice;
+        }
+        // Calculate insurance value
+        let piecesInsuranceValue: number = 0;
+        if (rule.hasinsurance){
+          for (const piece of order.pieces) {
+            switch (true){
+              case (piece.declaredValue == null || piece.declaredValue == 0):
+                piece.declaredValue = rule.defaultinsurancevalue;
+                break;
+              case (piece.declaredValue < rule.mininsurancevalue):
+                piece.declaredValue = rule.mininsurancevalue;
+                break;
+              default:
+                break;
+            }
+            piecesInsuranceValue += piece.declaredValue * rule.insurancepercentage / 100;
+          }
+        }
+        order.insuranceValue = piecesInsuranceValue;
+        order.billingAmount = billingAmount;
+        totalAmount += billingAmount;
+      } else {
+        order.skip = true;
+      }
+    };
+    const response = {
+        totalAmount: totalAmount,
+        orders: orders.filter((order) => !order.skip),
+      };
+    return response;
   }
 }

@@ -12,16 +12,7 @@ export class BillingController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('getBillableOrders')
   async handleGetBillableOrders(@Payload() payload: BillableOrdersRequestDto): Promise<any> {
-    const { params } = payload;
-    const resultMap = await this.billingService.getBillableOrders(params)
-    
-    return {
-      data: resultMap.get('orders'),
-      count: resultMap.get('count'),
-      total: resultMap.get('total'),
-      page: resultMap.get('page'),
-      pageCount: resultMap.get('pageCount'),
-      totalAmount: resultMap.get('totalAmount'),
-    };
+    const { params, authorization_core } = payload;
+    return await this.billingService.getBillableOrders(params, authorization_core)
   }
 }

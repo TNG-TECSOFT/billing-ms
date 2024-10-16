@@ -35,7 +35,7 @@ import {
     serviceId: number;
 
     @Column({nullable: true})
-    trackingId: number;
+    trackingId: string;
 
     @Column({nullable: false})
     productSku: string;

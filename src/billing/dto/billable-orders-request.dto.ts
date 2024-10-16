@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, IsBoolean } from 'class-validator';
 
 class Params {
   @IsNotEmpty()
@@ -56,12 +56,20 @@ class Params {
   @IsOptional()
   @IsNumber()
   offset: number;
+
+  @IsOptional()
+  @IsBoolean()
+  selectAll: boolean;
 }
 
 class BillableOrdersRequestDto {
   @IsNotEmpty()
   @IsString()
   token: string;
+
+  @IsNotEmpty()
+  @IsString()
+  authorization_core: string;
 
   @IsNotEmpty()
   @IsString()

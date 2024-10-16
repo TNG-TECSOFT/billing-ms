@@ -13,6 +13,7 @@ interface EnvVars {
   TYPEORM_DATABASE: string;
   TYPEORM_HOST_RO: string;
   SECRET_KEY: string;
+  CORE_API_URL: string;
 }
 
 const envsSchema = joi.object({
@@ -27,6 +28,7 @@ const envsSchema = joi.object({
   TYPEORM_DATABASE: joi.string().required(),
   TYPEORM_HOST_RO: joi.string().required(),
   SECRET_KEY: joi.string().required(),
+  CORE_API_URL: joi.string().required(),
 })
 .unknown(true);
 
@@ -41,7 +43,6 @@ if ( error ) {
 
 const envVars:EnvVars = value;
 
-
 export const envs = {
   port: envVars.PORT,
   host: envVars.HOST,
@@ -54,4 +55,5 @@ export const envs = {
   typeorm_database: envVars.TYPEORM_DATABASE,
   typeorm_host_ro: envVars.TYPEORM_HOST_RO,
   secret_key: envVars.SECRET_KEY,
+  core_api_url: envVars.CORE_API_URL
 };
