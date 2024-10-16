@@ -77,7 +77,8 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         SUM(otb."lineTotal") AS "totalAmountToPay",
         SUM(otb."insuranceValue") AS "totalAmountInsurance"
       FROM order_to_billing otb
-    `;
+      WHERE otb."shipperId" = ${query.params.shipperId} AND otb."sendAt" IS NULL
+  `;
 
     const totalsResult = await getManager().query(totalsQuery);
     const totalAmountToPay = parseFloat(totalsResult[0].totalAmountToPay) || 0;
