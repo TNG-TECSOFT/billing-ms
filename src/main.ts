@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
-import { ValidationError} from 'class-validator';
 
 import { envs } from './config/env';
 

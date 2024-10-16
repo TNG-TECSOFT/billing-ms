@@ -74,10 +74,6 @@ class BillableOrdersRequestDto {
   @IsNotEmpty()
   @IsString()
   params: string;
-
-  @IsNotEmpty()
-  @IsString()
-  authorization_core: string;
 }
 
 export { BillableOrdersRequestDto, Params };
