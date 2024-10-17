@@ -75,6 +75,7 @@ export class BillingService {
     // Validate the payload
     if (!parsedPayload ||
       !parsedPayload.shipperId ||
+      !parsedPayload.momentId ||
       !parsedPayload.createdAtFrom ||
       !parsedPayload.createdAtTo
     ) {
@@ -89,7 +90,7 @@ export class BillingService {
       impositionPlaceId: parsedPayload.impositionPlaceId || 0,
       trackingId: parsedPayload.trackingId == '0' ? parsedPayload.trackingId : parsedPayload.trackingId + '%',
       chanelledNode: parsedPayload.chanelledNode || '0',
-      momentId: parsedPayload.momentId || 0,
+      momentId: parsedPayload.momentId,
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
       createdAtTo: parsedPayload.createdAtTo || Date.now(),
       sort: '',
@@ -97,7 +98,7 @@ export class BillingService {
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
       page: parsedPayload.page || 1,
-      selectAll: false
+      selectAll: parsedPayload.selectAll || false
     };
     return params
   }

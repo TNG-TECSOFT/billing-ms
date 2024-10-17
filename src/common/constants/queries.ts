@@ -38,17 +38,18 @@ function getBillableOrdersQuery() {
       INNER JOIN "stage" "recordedStage" ON "recordedStage"."id" = "stages_history"."stageId"
       INNER JOIN "moments" ON "moments"."id" = "stages_history"."momentId"
       INNER JOIN "product" ON "product"."id" = "order"."product"
+      -- LEFT OUTER JOIN "order"."id" = "order_to_billing"."orderId"
       INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id"
       INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
     WHERE 
       "order"."shipper" = $1
-      AND ("order"."service" = $2 OR $2 = 0)
-      AND ("order"."product" = $3 OR $3 = 0)
+      :servicePlaceholder
+      :productPlaceholder
       AND "shipper"."isActive" = true
-      AND ("order"."trackingId" LIKE $4 OR $4 = '0')
-      AND ("stages_history"."momentId" = $5 OR $5 = 0)
-      AND "order"."createdAt" BETWEEN $6 AND $7
-      AND ("chanelledNode"."name" LIKE $8 OR $8 = '0')
+      :trackingIdPlaceholder
+      AND "stages_history"."momentId" = $2
+      AND "order"."createdAt" BETWEEN $3 AND $4
+      :chanelledNodePlaceholder
     ORDER BY 
       "order"."id", "piece"."id" DESC
   ) AS "ORDERS"
@@ -59,9 +60,7 @@ function getBillableOrdersQuery() {
     AND "ORDERS"."moment_id" = "BR"."momentId"
   WHERE 
     "BR"."active" = true
-    AND (("BR"."payforimpositionplace" = false AND $9 = 0) 
-      OR ("BR"."payforimpositionplace" = true AND "BR"."impositionplaceid" = $9)
-    ) 
+    :impositionPlacePlaceholder
   `;
 }
 
