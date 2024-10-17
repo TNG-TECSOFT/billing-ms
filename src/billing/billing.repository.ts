@@ -14,6 +14,7 @@ export class BillingRepository{
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
+      // Parameters to be passed to the query
       const paramsArray = [
         params.shipperId,
         params.momentId,
@@ -21,6 +22,7 @@ export class BillingRepository{
         params.createdAtTo,       
         ];
 
+      // Build the query based on the parameters
       let query = getBillableOrdersQuery();
       params.serviceId == 0 ? query = query.replace(':servicePlaceholder','') : query = query.replace(':servicePlaceholder',`AND "order"."service" = ${params.serviceId}`);
       params.productId == 0 ? query = query.replace(':productPlaceholder','') : query = query.replace(':productPlaceholder',`AND "order"."product" = ${params.productId}`);
