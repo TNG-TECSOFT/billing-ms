@@ -38,7 +38,7 @@ function getBillableOrdersQuery() {
       INNER JOIN "stage" "recordedStage" ON "recordedStage"."id" = "stages_history"."stageId"
       INNER JOIN "moments" ON "moments"."id" = "stages_history"."momentId"
       INNER JOIN "product" ON "product"."id" = "order"."product"
-      -- LEFT OUTER JOIN "order"."id" = "order_to_billing"."orderId"
+      LEFT OUTER JOIN "order"."id" = "order_to_billing"."orderId"
       INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id"
       INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
     WHERE 
