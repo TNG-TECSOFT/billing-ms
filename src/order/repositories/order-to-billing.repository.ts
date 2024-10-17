@@ -57,7 +57,14 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       rawQuery += ` ORDER BY otb.id ASC`;
     }
 
-    const total = (await builder.getCount()).toString();
+    const [totalCountResult] = await getManager().query(`
+      SELECT COUNT(*) AS total 
+      FROM order_to_billing AS otb
+      LEFT JOIN shipper AS s ON otb."shipperId" = s.id
+      WHERE s.id = ${query.params.shipperId} AND otb."sendAt" IS NULL
+    `);
+
+    const total = totalCountResult.total; 
 
     if (query.params.page >= 1 && query.params.limit) {
       const skip = query.params.limit * (query.params.page - 1);
