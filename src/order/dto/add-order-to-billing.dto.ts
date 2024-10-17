@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsArray, IsString, ValidateNested} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsArray, IsString, ValidateNested, IsOptional} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class AddOrderToBillingDto {
@@ -6,7 +6,7 @@ class AddOrderToBillingDto {
     @IsNumber()
     shipperId: number;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsArray()
     ordersIds: number[];
     
@@ -20,6 +20,14 @@ class AddOrderToBillingRequestDto {
     @ValidateNested()
     @Type(() => AddOrderToBillingDto)
     orderInfo: AddOrderToBillingDto;
+
+    @IsOptional()
+    @IsString()
+    params: string;
+
+    @IsOptional()
+    @IsString()
+    authorization_core: string;
 }
 
 export {AddOrderToBillingDto, AddOrderToBillingRequestDto}

@@ -6,6 +6,7 @@ import { envs } from '../config/env';
 import { OrderController } from './order.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderToBillingRepository } from './repositories/order-to-billing.repository';
+import { BillingRepository } from '../billing/billing.repository';
 @Module({
   imports: [
     HttpModule,
@@ -22,7 +23,7 @@ import { OrderToBillingRepository } from './repositories/order-to-billing.reposi
     TypeOrmModule.forFeature([OrderToBillingRepository])
   ],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, BillingRepository],
   exports: [OrderService],
 })
 export class OrderModule {}
