@@ -32,13 +32,13 @@ function getBillableOrdersQuery() {
     FROM 
       "order"
       INNER JOIN "shipper" ON "shipper"."id" = "order"."shipper"
+      LEFT OUTER JOIN "order_to_billing" ON "order"."id" = "order_to_billing"."orderId"
+      INNER JOIN "node" "chanelledNode" ON "chanelledNode"."id" = "order"."chanelledNodeId"
+      INNER JOIN "product" ON "product"."id" = "order"."product"
       INNER JOIN "piece" ON "piece"."orderId" = "order"."id"
       INNER JOIN "stages_history" ON "stages_history"."pieceId" = "piece"."id"
-      INNER JOIN "node" "chanelledNode" ON "chanelledNode"."id" = "order"."chanelledNodeId"
       INNER JOIN "stage" "recordedStage" ON "recordedStage"."id" = "stages_history"."stageId"
       INNER JOIN "moments" ON "moments"."id" = "stages_history"."momentId"
-      INNER JOIN "product" ON "product"."id" = "order"."product"
-      LEFT OUTER JOIN "order"."id" = "order_to_billing"."orderId"
       INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id"
       INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
     WHERE 
@@ -50,6 +50,7 @@ function getBillableOrdersQuery() {
       AND "stages_history"."momentId" = $2
       AND "order"."createdAt" BETWEEN $3 AND $4
       :chanelledNodePlaceholder
+      AND "order_to_billing"."orderId" IS NULL
     ORDER BY 
       "order"."id", "piece"."id" DESC
   ) AS "ORDERS"
