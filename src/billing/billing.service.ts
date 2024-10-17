@@ -44,7 +44,7 @@ export class BillingService {
       const count = validatedParams.limit;
       const total = results.count;
       const page = validatedParams.page;
-      const pageCount = Math.ceil(count / validatedParams.limit);
+      const pageCount = Math.ceil(total / validatedParams.limit);
       const totalAmount = billableOrders.totalAmount; // needs to be added later
 
       // Create a map to store the orders and the pagination data
