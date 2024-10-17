@@ -15,7 +15,6 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
 
     const ordersMap: Map<string, any> = new Map();
 
-    let count: number = 0;
 
     let builder = getManager().createQueryBuilder(OrderToBilling, 'order');
 
@@ -58,19 +57,20 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       rawQuery += ` ORDER BY otb.id ASC`;
     }
 
+    const total = (await builder.getCount()).toString();
+
     if (query.params.page >= 1 && query.params.limit) {
       const skip = query.params.limit * (query.params.page - 1);
       rawQuery += ` LIMIT ${query.params.limit} OFFSET ${skip}`;
     }
 
-    const [ordersData, total] = await Promise.all([
+    const [ordersData] = await Promise.all([
       getManager().query(rawQuery),
-      builder.getCount(),
     ]);
 
-    count = ordersData.length;
+    const count = query.params.limit;
 
-    let pageCount = Math.ceil(total / Number(query.params.limit));
+    const pageCount = Math.ceil(Number(total) / Number(query.params.limit));
 
     const totalsQuery = `
       SELECT 
