@@ -1,65 +1,67 @@
 function getBillableOrdersQuery() {
   return `
-  SELECT DISTINCT ON ("order"."id", "piece"."id")
-    "order"."id" AS "order_id", 
-    "order"."trackingId" AS "order_trackingId", 
-    "order"."address" AS "order_address", 
-    "order"."zipCode" AS "order_zipCode", 
-    "order"."province" AS "order_province", 
-    "order"."state" AS "order_state", 
-    "shipper"."id" AS "shipper_id", 
-    "shipper"."name" AS "shipper_name", 
-    "services"."id" AS "service_id", 
-    "chanelledNode"."id" AS "chanelledNode_id", 
-    "chanelledNode"."name" AS "chanelledNode_name", 
-    "piece"."id" AS "piece_id", 
-    "piece"."SKU" AS "piece_SKU", 
-    "piece"."height" AS "piece_height", 
-    "piece"."width" AS "piece_width", 
-    "piece"."length" AS "piece_length", 
-    "piece"."weight" AS "piece_weight",
-    "piece"."declaredValue" AS "piece_declaredValue",
-    "stages_history"."id" AS "stagesHistory_id", 
-    "stages_history"."createdAt" AS "stagesHistory_createdAt", 
-    "moments"."id" AS "moment_id", 
-    "moments"."display_name" AS "moment_display_name", 
-    "product"."id" AS "product_id", 
-    "product_shipper"."dimensionalFactor" AS "productShipper_dimensionalFactor",
-    "billing_rule"."id" AS "billingRule_id"
-FROM 
-    "order"
-    INNER JOIN "shipper" ON "shipper"."id" = "order"."shipper"
-    INNER JOIN "piece" ON "piece"."orderId" = "order"."id"
-    INNER JOIN "stages_history" ON "stages_history"."pieceId" = "piece"."id"
-    INNER JOIN "billing_rule" ON "order"."shipper" = "billing_rule"."shipperid"
-        AND "order"."service" = "billing_rule"."serviceid"
-        AND "order"."product" = "billing_rule"."productid"
-        AND "stages_history"."momentId" = "billing_rule"."momentId"
-    INNER JOIN "services" ON "services"."id" = "order"."service"
-    INNER JOIN "node" "chanelledNode" ON "chanelledNode"."id" = "order"."chanelledNodeId"
-    INNER JOIN "stage" "recordedStage" ON "recordedStage"."id" = "stages_history"."stageId"
-    INNER JOIN "moments" ON "moments"."id" = "stages_history"."momentId"
-    INNER JOIN "product" ON "product"."id" = "order"."product"
-    INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id"
-    INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
-WHERE 
-    "order"."shipper" = $1
-    AND ("order"."service" = $2 OR $2 = 0)
-    AND ("order"."product" = $3 OR $3 = 0)
-    AND "shipper"."id" = "product_shipper"."shipperId"
-    AND "shipper"."isActive" = true
-	  AND "billing_rule"."active" = true
-    AND ("order"."trackingId" LIKE $4 OR $4 = '0')
-    AND ("stages_history"."momentId" = $5 OR $5 = 0)
-    AND "order"."createdAt" BETWEEN $6 AND $7
-    AND ("chanelledNode"."name" LIKE $8 OR $8 = '0')
-    AND (
-      ("billing_rule"."payforimpositionplace" = false AND $9 = 0) 
-      OR 
-      ("billing_rule"."payforimpositionplace" = true AND "billing_rule"."impositionplaceid" = $9)
+  SELECT "ORDERS".*, "BR"."id" AS "billingRule_id" 
+  FROM
+  (
+    SELECT DISTINCT ON ("order"."id", "piece"."id")
+      "order"."id" AS "order_id", 
+      "order"."trackingId" AS "order_trackingId", 
+      "order"."address" AS "order_address", 
+      "order"."zipCode" AS "order_zipCode", 
+      "order"."province" AS "order_province", 
+      "order"."state" AS "order_state", 
+      "shipper"."id" AS "shipper_id", 
+      "shipper"."name" AS "shipper_name",
+      "shipper"."hasInsurance" AS "shipper_hasInsurance",
+      "order"."service" AS "service_id", 
+      "chanelledNode"."id" AS "chanelledNode_id", 
+      "chanelledNode"."name" AS "chanelledNode_name", 
+      "piece"."id" AS "piece_id", 
+      "piece"."SKU" AS "piece_SKU", 
+      "piece"."height" AS "piece_height", 
+      "piece"."width" AS "piece_width", 
+      "piece"."length" AS "piece_length", 
+      "piece"."weight" AS "piece_weight",
+      "piece"."declaredValue" AS "piece_declaredValue",
+      "stages_history"."id" AS "stagesHistory_id", 
+      "stages_history"."createdAt" AS "stagesHistory_createdAt", 
+      "stages_history"."momentId" AS "moment_id", 
+      "moments"."display_name" AS "moment_display_name", 
+      "product"."id" AS "product_id", 
+      "product_shipper"."dimensionalFactor" AS "productShipper_dimensionalFactor"
+    FROM 
+      "order"
+      INNER JOIN "shipper" ON "shipper"."id" = "order"."shipper"
+      INNER JOIN "piece" ON "piece"."orderId" = "order"."id"
+      INNER JOIN "stages_history" ON "stages_history"."pieceId" = "piece"."id"
+      INNER JOIN "node" "chanelledNode" ON "chanelledNode"."id" = "order"."chanelledNodeId"
+      INNER JOIN "stage" "recordedStage" ON "recordedStage"."id" = "stages_history"."stageId"
+      INNER JOIN "moments" ON "moments"."id" = "stages_history"."momentId"
+      INNER JOIN "product" ON "product"."id" = "order"."product"
+      INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id"
+      INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
+    WHERE 
+      "order"."shipper" = $1
+      AND ("order"."service" = $2 OR $2 = 0)
+      AND ("order"."product" = $3 OR $3 = 0)
+      AND "shipper"."isActive" = true
+      AND ("order"."trackingId" LIKE $4 OR $4 = '0')
+      AND ("stages_history"."momentId" = $5 OR $5 = 0)
+      AND "order"."createdAt" BETWEEN $6 AND $7
+      AND ("chanelledNode"."name" LIKE $8 OR $8 = '0')
+    ORDER BY 
+      "order"."id", "piece"."id" DESC
+  ) AS "ORDERS"
+  INNER JOIN "billing_rule" "BR" ON
+    "ORDERS"."shipper_id" = "BR"."shipperid"
+    AND "ORDERS"."service_id" = "BR"."serviceid"
+    AND "ORDERS"."product_id" = "BR"."productid"
+    AND "ORDERS"."moment_id" = "BR"."momentId"
+  WHERE 
+    "BR"."active" = true
+    AND (("BR"."payforimpositionplace" = false AND $9 = 0) 
+      OR ("BR"."payforimpositionplace" = true AND "BR"."impositionplaceid" = $9)
     ) 
-ORDER BY 
-    "order"."id", "piece"."id"
   `;
 }
 
