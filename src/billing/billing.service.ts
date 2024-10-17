@@ -92,12 +92,12 @@ export class BillingService {
       momentId: parsedPayload.momentId || 0,
       createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
       createdAtTo: parsedPayload.createdAtTo || Date.now(),
-      sort: parsedPayload.sort == 'id' ? '' : `, "${parsedPayload.sort}"`,
+      sort: '',
       order: parsedPayload.order || 'DESC',
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
       page: parsedPayload.page || 1,
-      selectAll: parsedPayload.selectAll || false
+      selectAll: false
     };
     return params
   }
