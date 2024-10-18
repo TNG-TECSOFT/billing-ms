@@ -43,6 +43,7 @@ function getBillableOrdersQuery() {
       INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
     WHERE 
       "order"."shipper" = $1
+      :orderIdsPlaceholder
       :servicePlaceholder
       :productPlaceholder
       AND "shipper"."isActive" = true

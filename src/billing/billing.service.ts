@@ -91,14 +91,15 @@ export class BillingService {
       trackingId: parsedPayload.trackingId == '0' ? parsedPayload.trackingId : parsedPayload.trackingId + '%',
       chanelledNode: parsedPayload.chanelledNode || '0',
       momentId: parsedPayload.momentId,
-      createdAtFrom: parsedPayload.createdAtFrom || Date.now(),
-      createdAtTo: parsedPayload.createdAtTo || Date.now(),
+      createdAtFrom: parsedPayload.createdAtFrom,
+      createdAtTo: parsedPayload.createdAtTo,
       sort: '',
       order: parsedPayload.order || 'DESC',
       limit: parsedPayload.limit || 10,
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
       page: parsedPayload.page || 1,
-      selectAll: parsedPayload.selectAll || false
+      selectAll: parsedPayload.selectAll || false,
+      ordersIds: parsedPayload.ordersIds || [],
     };
     return params
   }

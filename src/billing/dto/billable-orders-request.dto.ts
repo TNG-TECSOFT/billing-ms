@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsDate, IsOptional, IsBoolean, IsArray } from 'class-validator';
 
 class Params {
   @IsNotEmpty()
@@ -60,6 +60,10 @@ class Params {
   @IsOptional()
   @IsBoolean()
   selectAll: boolean;
+
+  @IsOptional()
+  @IsArray()
+  ordersIds: number[];
 }
 
 class BillableOrdersRequestDto {

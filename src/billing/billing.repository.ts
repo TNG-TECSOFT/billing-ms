@@ -24,6 +24,7 @@ export class BillingRepository{
 
       // Build the query based on the parameters
       let query = getBillableOrdersQuery();
+      params.orderIds.length == 0 ? query = query.replace(':orderIdsPlaceholder','') : query = query.replace(':orderPlaceholder',`AND "order"."id" = ANY(${params.orderIds})`);
       params.serviceId == 0 ? query = query.replace(':servicePlaceholder','') : query = query.replace(':servicePlaceholder',`AND "order"."service" = ${params.serviceId}`);
       params.productId == 0 ? query = query.replace(':productPlaceholder','') : query = query.replace(':productPlaceholder',`AND "order"."product" = ${params.productId}`);
       params.trackingId == '0' ? query = query.replace(':trackingIdPlaceholder','') : query = query.replace(':trackingIdPlaceholder',`AND "order"."trackingId" LIKE '${params.trackingId}'`);
