@@ -1,25 +1,9 @@
-import { IsNotEmpty, IsNumber, IsArray, IsString, ValidateNested, IsOptional} from 'class-validator';
-import { Type } from 'class-transformer';
-
-class AddOrderToBillingDto {
-    @IsNotEmpty()
-    @IsNumber()
-    shipperId: number;
-
-    @IsOptional()
-    @IsArray()
-    ordersIds: number[];
-    
-}
+import { IsNotEmpty, IsArray, IsString, IsOptional} from 'class-validator';
 
 class AddOrderToBillingRequestDto {
     @IsNotEmpty()
     @IsString()
     token: string;
-
-    @ValidateNested()
-    @Type(() => AddOrderToBillingDto)
-    orderInfo: AddOrderToBillingDto;
 
     @IsOptional()
     @IsString()
@@ -30,4 +14,4 @@ class AddOrderToBillingRequestDto {
     authorization_core: string;
 }
 
-export {AddOrderToBillingDto, AddOrderToBillingRequestDto}
+export { AddOrderToBillingRequestDto }
