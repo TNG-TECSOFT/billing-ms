@@ -2,9 +2,9 @@ import { Controller, UseGuards, UsePipes, ValidationPipe, NotFoundException, Bad
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { OrderService } from './order.service';
-import { AddOrderToBillingRequestDto } from './dto/add-order-to-billing.dto';
 import { GetOrderToBillingDto } from './dto/get-order-to-billing.dto';
-import { DeleteOrderToBillingDto, DeleteOrderToBillingParamsDto } from './dto/delete-order-to-billing.dto';
+import { DeleteOrderToBillingDto } from './dto/delete-order-to-billing.dto';
+import { BillableOrdersRequestDto } from '../billing/dto/billable-orders-request.dto';
 
 @Controller()
 export class OrderController {
@@ -13,8 +13,8 @@ export class OrderController {
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('addOrderToBilling')
-  async handleAddOrderToBilling(@Payload() body: AddOrderToBillingRequestDto): Promise<any> {
-    return await this.orderService.addOrderToBilling(body);
+  async handleAddOrderToBilling(@Payload() params: BillableOrdersRequestDto): Promise<any> {
+    return await this.orderService.addOrderToBilling(params);
   }
 
   @UseGuards(AuthGuard)
