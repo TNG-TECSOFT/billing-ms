@@ -21,7 +21,15 @@ export class BillingService {
   async getBillableOrders(params: string, authorization: string): Promise<any> {    
     try {
       const validatedParams: Params = this.validateParamsFromPayload(params);
-      // Get the billable orders from the database
+      // Get the billable orders from the 
+      
+      if (validatedParams.selectAll){
+        return {
+          statusCode: 503,
+          message: 'Funcionalidad temporalmente fuera de servicio'
+        }
+      };
+      
       const results = await this.repository.getBillableOrders(validatedParams);
 
       const billingRulesParams = {
@@ -99,7 +107,7 @@ export class BillingService {
       offset: parsedPayload.offset || parsedPayload.limit * (parsedPayload.page - 1),
       page: parsedPayload.page || 1,
       selectAll: parsedPayload.selectAll || false,
-      ordersIds: parsedPayload.ordersIds || [],
+      orderIds: parsedPayload.orderIds || [],
     };
     return params
   }
@@ -141,6 +149,7 @@ export class BillingService {
                 billingRuleId: order.billingRule_id,
                 billingAmount: 0,
                 insuranceValue: 0,
+                insurancePercentage: 0,
                 skip: false,
             };
             acc.push(existingOrder);
@@ -288,6 +297,7 @@ export class BillingService {
           }
         }
         order.insuranceValue = piecesInsuranceValue;
+        order.insurancePercentage = rule.insurancepercentage;
         order.billingAmount = billingAmount;
         totalAmount += billingAmount;
       } else {

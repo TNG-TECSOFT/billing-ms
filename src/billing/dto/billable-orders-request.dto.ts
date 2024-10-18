@@ -63,7 +63,7 @@ class Params {
 
   @IsOptional()
   @IsArray()
-  ordersIds: number[];
+  orderIds: number[];
 }
 
 class BillableOrdersRequestDto {

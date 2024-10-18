@@ -7,6 +7,7 @@ import { OrderController } from './order.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderToBillingRepository } from './repositories/order-to-billing.repository';
 import { BillingRepository } from '../billing/billing.repository';
+import { BillingModule } from '../billing/billing.module';
 @Module({
   imports: [
     HttpModule,
@@ -20,7 +21,8 @@ import { BillingRepository } from '../billing/billing.repository';
         },
       },
     ]),
-    TypeOrmModule.forFeature([OrderToBillingRepository])
+    TypeOrmModule.forFeature([OrderToBillingRepository]),
+    BillingModule,
   ],
   controllers: [OrderController],
   providers: [OrderService, BillingRepository],

@@ -6,9 +6,19 @@ import {
 } from 'typeorm';
 import { OrderToBilling } from '../entities/order-to-billing.entity';
 import { GetOrderToBillingDto } from '../dto/get-order-to-billing.dto';
+import { Connection, QueryRunner } from 'typeorm';
+import { InjectConnection } from '@nestjs/typeorm';
+import { getAddOrdersToSendQuery } from '../../common/constants/queries';
+import { BillableOrdersDto } from '../../billing/dto/billable-orders.dto';
+import { getDataFromToken } from '../../common/utils/utils';
 
 @EntityRepository(OrderToBilling)
 export class OrderToBillingRepository extends Repository<OrderToBilling> {
+  constructor(
+    @InjectConnection() private readonly connection: Connection
+  ) {
+    super();
+  }
   async getOrdersToBilling(
     query: GetOrderToBillingDto
   ): Promise<Record<string, any>> {
@@ -108,6 +118,43 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       totalAmountToPay: ordersMap.get('totalAmountToPay'),
       totalAmountInsurance: ordersMap.get('totalAmountInsurance'),
     };
+  }
+
+  async addOrdersToBilling(orders: BillableOrdersDto[], token: string): Promise<any> {
+    const queryRunner : QueryRunner = this.connection.createQueryRunner();
+      
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      
+      orders.forEach(async order => {
+
+        const userData = getDataFromToken(token)
+
+        const otbParams = [
+          order.id,
+          order.billingAmount,
+          order.insuranceValue,
+          order.insurancePercentage,
+          userData.username,
+        ];          
+        
+        const query = getAddOrdersToSendQuery();
+        const result = await queryRunner.query(query, otbParams);
+        
+        await queryRunner.commitTransaction();
+              
+        return {
+          statusCode: 200,
+          message: `Se agregaron las ${orders.length} órdenes en espera de enviar a facturar.`
+        }
+      });     
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new Error(`Error ejecutando query: ${error.message}`);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async deleteOrderById(id: number): Promise<boolean> {
