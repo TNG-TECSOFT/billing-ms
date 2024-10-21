@@ -96,18 +96,18 @@ function getAddOrdersToSendQuery(){
       "notifyInvoiceBy"
   )
   SELECT
-      EXTRACT(MONTH FROM o."createdAt")::INT AS toMonth,
-      EXTRACT(YEAR FROM o."createdAt")::INT AS toYear,
-      order.shipper AS shipperId,
-      order."createdAt" AS "createdAt",
+      EXTRACT(MONTH FROM "order"."createdAt")::INT AS toMonth,
+      EXTRACT(YEAR FROM "order"."createdAt")::INT AS toYear,
+      "order"."shipper" AS "shipperId",
+      "order"."createdAt" AS "createdAt",
       $5 AS "createdBy",
-      order."id" AS "orderId",
-      order."product" AS "productId",
-      order."service" AS "serviceId",
-      order.trackingId AS "trackingId",
+      "order"."id" AS "orderId",
+      "order"."product" AS "productId",
+      "order"."service" AS "serviceId",
+      "order"."trackingId" AS "trackingId",
       'tangoArticle' AS "productSku",
       'insuranceTangoArticle' AS "productInsuranceSku",
-      order."piecesQuantity" AS "quantity",
+      "order"."piecesQuantity" AS "quantity",
       NULL AS "insuranceSku",
       $4 AS "insurancePercentage",
       $3 AS "insuranceValue", 
@@ -121,8 +121,8 @@ function getAddOrdersToSendQuery(){
       NULL AS "invoiceNo",
       NULL AS "notifyInvoiceAt",
       NULL AS "notifyInvoiceBy"
-  FROM "order" order
-  WHERE order."id" = $1;   
+  FROM "order"
+  WHERE "order"."id" = $1;   
   `
 }
 
