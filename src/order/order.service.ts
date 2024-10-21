@@ -1,21 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/typeorm';
-import { Connection, QueryRunner } from 'typeorm';
-import { getAddOrdersToSendQuery } from '../common/constants/queries';
 import { AddOrderToBillingRequestDto } from './dto/add-order-to-billing.dto';
 import { OrderToBillingRepository } from './repositories/order-to-billing.repository';
 import { GetOrderToBillingDto } from './dto/get-order-to-billing.dto';
-import { Params } from '../billing/dto/billable-orders-request.dto';
-import { BillingRepository } from '../billing/billing.repository';
 import { BillingService } from '../billing/billing.service';
 import { BillableOrdersDto } from '../billing/dto/billable-orders.dto';
+
 
 @Injectable()
 export class OrderService {
   constructor(
-    @InjectConnection() private readonly connection: Connection,
     private readonly orderToBillingRepository: OrderToBillingRepository,
-    private readonly billingRepository: BillingRepository,
     private readonly billingService: BillingService
   ) {}
 
@@ -30,7 +24,8 @@ export class OrderService {
   }
 
   async getOrderToBilling(query: GetOrderToBillingDto): Promise<any> {
-    return await this.orderToBillingRepository.getOrdersToBilling(query);
+    const { params } = query
+    return await this.orderToBillingRepository.getOrdersToBilling(params);
   }
 
   async deleteOrder(id: number): Promise<boolean> {

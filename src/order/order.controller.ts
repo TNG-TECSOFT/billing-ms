@@ -1,5 +1,5 @@
-import { Controller, UseGuards, UsePipes, ValidationPipe, NotFoundException, BadRequestException } from '@nestjs/common';
-import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { Controller, UseGuards, UsePipes, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { OrderService } from './order.service';
 import { GetOrderToBillingDto } from './dto/get-order-to-billing.dto';
