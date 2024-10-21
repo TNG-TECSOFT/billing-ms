@@ -22,8 +22,9 @@ export class OrderService {
     return result;
   }
 
-  async getOrderToBilling(query: GetOrderToBillingDto): Promise<any> {
-    return await this.orderToBillingRepository.getOrdersToBilling(query);
+  async getOrderToBilling(request: GetOrderToBillingDto): Promise<any> {
+    const params = request.params;
+    return await this.orderToBillingRepository.getOrdersToBilling(params);
   }
 
   async deleteOrder(id: number): Promise<boolean> {
