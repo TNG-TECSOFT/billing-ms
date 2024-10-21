@@ -1,5 +1,5 @@
 import { Controller, UseGuards, UsePipes, ValidationPipe, NotFoundException, BadRequestException } from '@nestjs/common';
-import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { OrderService } from './order.service';
 import { GetOrderToBillingDto } from './dto/get-order-to-billing.dto';
@@ -28,7 +28,6 @@ export class OrderController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('deleteOrderToBilling')
   async deleteOrder(@Payload() data: DeleteOrderToBillingDto): Promise<any> {
-
     const { params } = data;
     const { id } = params;
 
