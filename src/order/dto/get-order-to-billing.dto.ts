@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsArray, IsString, ValidateNested, isString, IsOptional } from 'class-validator';
+import {  IsString, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class GetOrderToBillingParamsDto {

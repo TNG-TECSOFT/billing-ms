@@ -5,30 +5,17 @@ import {
   getConnection
 } from 'typeorm';
 import { OrderToBilling } from '../entities/order-to-billing.entity';
-import { Injectable } from '@nestjs/common';
-import { GetOrderToBillingDto } from '../dto/get-order-to-billing.dto';
-import { Connection, QueryRunner } from 'typeorm';
-import { InjectConnection } from '@nestjs/typeorm';
 import { getAddOrdersToSendQuery } from '../../common/constants/queries';
 import { BillableOrdersDto } from '../../billing/dto/billable-orders.dto';
 import { getDataFromToken } from '../../common/utils/utils';
+import { GetOrderToBillingParamsDto } from '../dto/get-order-to-billing.dto';
 
 @EntityRepository(OrderToBilling)
-@Injectable()
 export class OrderToBillingRepository extends Repository<OrderToBilling> {
-  constructor(
-    @InjectConnection() private readonly connection: Connection
-  ) {
-    super();
-  }
   async getOrdersToBilling(
-    query: GetOrderToBillingDto
+   params: GetOrderToBillingParamsDto
   ): Promise<Record<string, any>> {
-
     const ordersMap: Map<string, any> = new Map();
-
-
-    let builder = getManager().createQueryBuilder(OrderToBilling, 'order');
 
     let rawQuery = `
       SELECT 
@@ -60,11 +47,11 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         node as n on o."chanelledNodeId" = n.id
     `;
 
-    rawQuery += `WHERE s.id = ${query.params.shipperId} AND otb."sendAt" is NULL`
+    rawQuery += `WHERE s.id = ${params.shipperId} AND otb."sendAt" is NULL`
 
-    if (!!query.params.sort && query.params.order) {
-      const queryOrder = query.params.order == 'ASC' ? 'ASC' : 'DESC';
-      rawQuery += ` ORDER BY ${query.params.sort} ${queryOrder}`;
+    if (!!params.sort && params.order) {
+      const queryOrder = params.order == 'ASC' ? 'ASC' : 'DESC';
+      rawQuery += ` ORDER BY ${params.sort} ${queryOrder}`;
     } else {
       rawQuery += ` ORDER BY otb.id ASC`;
     }
@@ -73,30 +60,30 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       SELECT COUNT(*) AS total 
       FROM order_to_billing AS otb
       LEFT JOIN shipper AS s ON otb."shipperId" = s.id
-      WHERE s.id = ${query.params.shipperId} AND otb."sendAt" IS NULL
+      WHERE s.id = ${params.shipperId} AND otb."sendAt" IS NULL
     `);
 
     const total = totalCountResult.total; 
 
-    if (query.params.page >= 1 && query.params.limit) {
-      const skip = query.params.limit * (query.params.page - 1);
-      rawQuery += ` LIMIT ${query.params.limit} OFFSET ${skip}`;
+    if (params.page >= 1 && params.limit) {
+      const skip = params.limit * (params.page - 1);
+      rawQuery += ` LIMIT ${params.limit} OFFSET ${skip}`;
     }
 
     const [ordersData] = await Promise.all([
       getManager().query(rawQuery),
     ]);
 
-    const count = query.params.limit;
+    const count = params.limit;
 
-    const pageCount = Math.ceil(Number(total) / Number(query.params.limit));
+    const pageCount = Math.ceil(Number(total) / Number(params.limit));
 
     const totalsQuery = `
       SELECT 
         SUM(otb."lineTotal") AS "totalAmountToPay",
         SUM(otb."insuranceValue") AS "totalAmountInsurance"
       FROM order_to_billing otb
-      WHERE otb."shipperId" = ${query.params.shipperId} AND otb."sendAt" IS NULL
+      WHERE otb."shipperId" = ${params.shipperId} AND otb."sendAt" IS NULL
   `;
 
     const totalsResult = await getManager().query(totalsQuery);
@@ -105,7 +92,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
 
     ordersMap.set('orders', ordersData);
     ordersMap.set('count', count);
-    ordersMap.set('page', Number(query.params.page));
+    ordersMap.set('page', Number(params.page));
     ordersMap.set('pageCount', pageCount);
     ordersMap.set('total', total);
     ordersMap.set('totalAmountToPay', totalAmountToPay);

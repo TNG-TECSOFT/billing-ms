@@ -1,4 +1,4 @@
-import { Controller, UseGuards, UsePipes, ValidationPipe, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, UseGuards, UsePipes, ValidationPipe, NotFoundException } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { OrderService } from './order.service';
