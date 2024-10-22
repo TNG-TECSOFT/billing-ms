@@ -68,7 +68,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
 
       if (!!params.sort && params.order) {
         const queryOrder = params.order == 'ASC' ? 'ASC' : 'DESC';
-        rawQuery += ` ORDER BY ${params.sort} ${queryOrder}`;
+        rawQuery += ` ORDER BY "${params.sort}" ${queryOrder}`;
       } else {
         rawQuery += ` ORDER BY otb.id ASC`;
       }
