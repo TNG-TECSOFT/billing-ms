@@ -45,9 +45,22 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
           services as sv ON otb."serviceId" = sv.id
       LEFT JOIN 
         node as n on o."chanelledNodeId" = n.id
+        WHERE 
+        s.id = ${params.shipperId} 
+        AND otb."sendAt" is NULL
+        :servicePlaceholder
+        :productPlaceholder
+        :trackingIdPlaceholder
+        :impositionPlacePlaceholder
     `;
 
-    rawQuery += `WHERE s.id = ${params.shipperId} AND otb."sendAt" is NULL`
+
+    params.service == '0' ? rawQuery = rawQuery.replace(':servicePlaceholder','') : rawQuery = rawQuery.replace(':servicePlaceholder',`AND "sv"."name" ILIKE '%${params.service}%'`);
+    params.product == '0' ? rawQuery = rawQuery.replace(':productPlaceholder','') : rawQuery = rawQuery.replace(':productPlaceholder',`AND "p"."name" ILIKE '%${params.product}%'`);
+    params.tracking == '0' ? rawQuery = rawQuery.replace(':trackingIdPlaceholder','') : rawQuery = rawQuery.replace(':trackingIdPlaceholder',`AND "o"."trackingId" ILIKE '%${params.tracking}%'`);
+    params.impositionPlace == '0' ? 
+        rawQuery = rawQuery.replace(':impositionPlacePlaceholder','') : 
+        rawQuery = rawQuery.replace(':impositionPlacePlaceholder',`AND "n"."name" ILIKE '%${params.impositionPlace}%'`);
 
     if (!!params.sort && params.order) {
       const queryOrder = params.order == 'ASC' ? 'ASC' : 'DESC';
@@ -57,13 +70,10 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
     }
 
     const [totalCountResult] = await getManager().query(`
-      SELECT COUNT(*) AS total 
-      FROM order_to_billing AS otb
-      LEFT JOIN shipper AS s ON otb."shipperId" = s.id
-      WHERE s.id = ${params.shipperId} AND otb."sendAt" IS NULL
+      SELECT COUNT(*) FROM (${rawQuery}) AS total 
     `);
 
-    const total = totalCountResult.total; 
+    const total = totalCountResult.count; 
 
     if (params.page >= 1 && params.limit) {
       const skip = params.limit * (params.page - 1);
