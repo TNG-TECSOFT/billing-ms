@@ -1,4 +1,4 @@
-import {  IsString, ValidateNested, IsOptional } from 'class-validator';
+import {  IsString, ValidateNested, IsOptional, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class GetOrderToBillingParamsDto {
@@ -13,7 +13,16 @@ class GetOrderToBillingParamsDto {
     limit: number;
     @IsString()
     shipperId: string;
-
+    @IsOptional()
+    product: string;
+    @IsOptional()
+    service: string;
+    @IsOptional()
+    tracking: string;
+    @IsOptional()
+    impositionPlace: string;
+    @IsOptional()
+    productSku: string;
 }
 
 class GetOrderToBillingDto {

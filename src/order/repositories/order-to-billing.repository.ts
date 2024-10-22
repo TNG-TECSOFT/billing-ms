@@ -14,42 +14,57 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 @EntityRepository(OrderToBilling)
 export class OrderToBillingRepository extends Repository<OrderToBilling> {
   async getOrdersToBilling(
-   params: GetOrderToBillingParamsDto
+    params: GetOrderToBillingParamsDto
   ): Promise<Record<string, any>> {
     try {    
       const ordersMap: Map<string, any> = new Map();
 
-      let rawQuery = `
-        SELECT 
-          otb.id AS "id",
-          CONCAT(EXTRACT(MONTH FROM NOW()), '/', EXTRACT(YEAR FROM NOW())) AS "periodo",
-          s.name AS shipper,
-          otb."createdAt" AS "fechaRegistro",
-          o.id AS "ordenId",
-          p.name AS "producto",
-          sv.name AS "servicio",
-          otb."productSku" AS "productoTango",
-          n."name" AS "nodoImposicion",
-          otb."quantity" AS "cantidad",
-          otb."unitPrice" AS "importeUnitario",
-          otb."insurancePercentage" AS "porcentajeSeguro",
-          otb."insuranceValue" AS "importeSeguro",
-          otb."lineTotal" AS "total"
-        FROM 
-            order_to_billing as otb
-        LEFT JOIN 
-            shipper as s ON otb."shipperId" = s.id
-        LEFT JOIN 
-            "order" as o ON otb."orderId" = o.id
-        LEFT JOIN 
-            product p ON otb."productId" = p.id
-        LEFT JOIN 
-            services as sv ON otb."serviceId" = sv.id
-        LEFT JOIN 
-          node as n on o."chanelledNodeId" = n.id
-      `;
+    let rawQuery = `
+      SELECT 
+        otb.id AS "id",
+        CONCAT(EXTRACT(MONTH FROM NOW()), '/', EXTRACT(YEAR FROM NOW())) AS "periodo",
+        s.name AS shipper,
+        TO_CHAR(otb."createdAt", 'DD/MM/YYYY') AS "fechaRegistro",
+        o."trackingId" AS "trackingId",
+        p.name AS "producto",
+        sv.name AS "servicio",
+        otb."productSku" AS "productoTango",
+        n."name" AS "nodoImposicion",
+        otb."quantity" AS "cantidad",
+        otb."unitPrice" AS "importeUnitario",
+        otb."insurancePercentage" AS "porcentajeSeguro",
+        otb."insuranceValue" AS "importeSeguro",
+        otb."lineTotal" AS "total"
+      FROM 
+          order_to_billing as otb
+      LEFT JOIN 
+          shipper as s ON otb."shipperId" = s.id
+      LEFT JOIN 
+          "order" as o ON otb."orderId" = o.id
+      LEFT JOIN 
+          product p ON otb."productId" = p.id
+      LEFT JOIN 
+          services as sv ON otb."serviceId" = sv.id
+      LEFT JOIN 
+        node as n on o."chanelledNodeId" = n.id
+        WHERE 
+        s.id = ${params.shipperId} 
+        AND otb."sendAt" is NULL
+        :servicePlaceholder
+        :productPlaceholder
+        :trackingIdPlaceholder
+        :impositionPlacePlaceholder
+        :productSkuPlaceholder
+    `;
 
-      rawQuery += `WHERE s.id = ${params.shipperId} AND otb."sendAt" is NULL`
+
+    params.service == '0' ? rawQuery = rawQuery.replace(':servicePlaceholder','') : rawQuery = rawQuery.replace(':servicePlaceholder',`AND "sv"."name" ILIKE '%${params.service}%'`);
+    params.product == '0' ? rawQuery = rawQuery.replace(':productPlaceholder','') : rawQuery = rawQuery.replace(':productPlaceholder',`AND "p"."name" ILIKE '%${params.product}%'`);
+    params.tracking == '0' ? rawQuery = rawQuery.replace(':trackingIdPlaceholder','') : rawQuery = rawQuery.replace(':trackingIdPlaceholder',`AND "o"."trackingId" ILIKE '%${params.tracking}%'`);
+    params.impositionPlace == '0' ? 
+        rawQuery = rawQuery.replace(':impositionPlacePlaceholder','') : 
+        rawQuery = rawQuery.replace(':impositionPlacePlaceholder',`AND "n"."name" ILIKE '%${params.impositionPlace}%'`);
+    params.productSku == '0' ? rawQuery = rawQuery.replace(':productSkuPlaceholder','') : rawQuery = rawQuery.replace(':productSkuPlaceholder', `AND "otb"."productSku" ILIKE '%${params.productSku}%'`)
 
       if (!!params.sort && params.order) {
         const queryOrder = params.order == 'ASC' ? 'ASC' : 'DESC';
@@ -58,14 +73,11 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         rawQuery += ` ORDER BY otb.id ASC`;
       }
 
-      const [totalCountResult] = await getManager().query(`
-        SELECT COUNT(*) AS total 
-        FROM order_to_billing AS otb
-        LEFT JOIN shipper AS s ON otb."shipperId" = s.id
-        WHERE s.id = ${params.shipperId} AND otb."sendAt" IS NULL
-      `);
+    const [totalCountResult] = await getManager().query(`
+      SELECT COUNT(*) FROM (${rawQuery}) AS total 
+    `);
 
-      const total = totalCountResult.total; 
+    const total = totalCountResult.count; 
 
       if (params.page >= 1 && params.limit) {
         const skip = params.limit * (params.page - 1);
@@ -115,14 +127,14 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
   }
 
   async addOrdersToBilling(orders: BillableOrdersDto[], token: string): Promise<any> {
-    const connection = getConnection(); 
+    const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
     console.log('MS - Repo - 1')
 
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      
+
       orders.forEach(async (order) => {
         const userData = getDataFromToken(token)
 
@@ -132,18 +144,18 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
           order.insuranceValue,
           order.insurancePercentage,
           userData.username,
-        ];          
-        console.log('MS - Repo - 2')
+        ];
+
         const query = getAddOrdersToSendQuery();
         await queryRunner.query(query, otbParams);
         console.log('MS - Repo - 3')
       });
       await queryRunner.commitTransaction();
-      
+
       return {
         statusCode: 200,
         message: `Se agregaron ${orders.length} órdenes en espera de enviar a facturar.`
-      }      
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new HttpException(`Error ejecutando query: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
