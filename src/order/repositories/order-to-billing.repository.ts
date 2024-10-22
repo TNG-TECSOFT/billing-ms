@@ -129,8 +129,6 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
   async addOrdersToBilling(orders: BillableOrdersDto[], token: string): Promise<any> {
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
-    console.log('MS - Repo - 1')
-
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -148,7 +146,6 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
 
         const query = getAddOrdersToSendQuery();
         await queryRunner.query(query, otbParams);
-        console.log('MS - Repo - 3')
       });
       await queryRunner.commitTransaction();
 
