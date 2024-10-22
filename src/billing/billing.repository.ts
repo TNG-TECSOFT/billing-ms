@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection, QueryRunner } from 'typeorm';
 import { getBillableOrdersQuery } from '../common/constants/queries';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class BillingRepository{
   constructor(
     @InjectConnection() private readonly connection: Connection
   ) {}
   async getBillableOrders(params: any): Promise<any> {
-    const queryRunner: QueryRunner = this.connection.createQueryRunner();
+    const queryRunner: QueryRunner = this.connection.createQueryRunner();  
     
-    try {
+    try {      
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
@@ -48,7 +48,7 @@ export class BillingRepository{
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new Error(`Error executing custom query: ${error.message}`);
+      throw new HttpException(`Error ejecutando query: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     } finally {
       await queryRunner.release();
     }
@@ -89,7 +89,7 @@ export class BillingRepository{
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new Error(`Error executing custom query: ${error.message}`);
+      throw new HttpException(`Error ejecutando query: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     } finally {
       await queryRunner.release();
     }

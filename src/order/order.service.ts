@@ -4,7 +4,6 @@ import { OrderToBillingRepository } from './repositories/order-to-billing.reposi
 import { GetOrderToBillingDto } from './dto/get-order-to-billing.dto';
 import { BillingService } from '../billing/billing.service';
 
-
 @Injectable()
 export class OrderService {
   constructor(
@@ -13,21 +12,33 @@ export class OrderService {
   ) {}
 
   async addOrderToBilling(request: AddOrderToBillingRequestDto): Promise<any> {
-    // Get billable orders
-    const orders = await this.billingService.getBillableOrders(request.params, request.authorization_core);
+    try{
+      // Get billable orders
+      const orders = await this.billingService.getBillableOrders(request.params, request.authorization_core);
+      
+      // Add orders to billing
+      const result = await this.orderToBillingRepository.addOrdersToBilling(orders.data, request.token);
 
-    // Add orders to billing
-    const result = await this.orderToBillingRepository.addOrdersToBilling(orders.data, request.token);
-
-    return result;
+      return result;
+    } catch (error) {
+      return error;
+    }
   }
 
   async getOrderToBilling(request: GetOrderToBillingDto): Promise<any> {
-    const params = request.params;
-    return await this.orderToBillingRepository.getOrdersToBilling(params);
+    try {
+      const params = request.params;
+      return await this.orderToBillingRepository.getOrdersToBilling(params);
+    } catch (error) {
+      return error;
+    }
   }
 
   async deleteOrder(id: number): Promise<boolean> {
-    return await this.orderToBillingRepository.deleteOrderById(id);
+    try {
+      return await this.orderToBillingRepository.deleteOrderById(id);
+    } catch (error) {
+      return error;
+    }
   }
 }

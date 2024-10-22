@@ -14,27 +14,39 @@ export class OrderController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('addOrderToBilling')
   async handleAddOrderToBilling(@Payload() params: BillableOrdersRequestDto): Promise<any> {
-    return await this.orderService.addOrderToBilling(params);
+    try{
+      return await this.orderService.addOrderToBilling(params);
+    } catch (error) {
+      return error;
+    }
   }
 
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('getAllOrderToBilling')
   async handleGetAllOrderToBilling(@Payload() query: GetOrderToBillingDto): Promise<any> {
-    return await this.orderService.getOrderToBilling(query);
+    try {
+      return await this.orderService.getOrderToBilling(query);
+    } catch (error) {
+      return error;
+    }
   }
 
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('deleteOrderToBilling')
   async deleteOrder(@Payload() data: DeleteOrderToBillingDto): Promise<any> {
-    const { params } = data;
-    const { id } = params;
+    try {
+      const { params } = data;
+      const { id } = params;
 
-    const deleted = await this.orderService.deleteOrder(id);
-    if (!deleted) {
-      throw new NotFoundException('Orden no encontrada');
+      const deleted = await this.orderService.deleteOrder(id);
+      if (!deleted) {
+        throw new NotFoundException('Orden no encontrada');
+      }
+      return { message: 'Orden eliminada correctamente', id };
+    } catch (error) {
+      return error;
     }
-    return { message: 'Orden eliminada correctamente', id };
   }
 }
