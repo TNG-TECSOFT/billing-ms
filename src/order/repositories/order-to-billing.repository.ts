@@ -52,6 +52,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         :productPlaceholder
         :trackingIdPlaceholder
         :impositionPlacePlaceholder
+        :productSkuPlaceholder
     `;
 
 
@@ -61,6 +62,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
     params.impositionPlace == '0' ? 
         rawQuery = rawQuery.replace(':impositionPlacePlaceholder','') : 
         rawQuery = rawQuery.replace(':impositionPlacePlaceholder',`AND "n"."name" ILIKE '%${params.impositionPlace}%'`);
+    params.productSku == '0' ? rawQuery = rawQuery.replace(':productSkuPlaceholder','') : rawQuery = rawQuery.replace(':productSkuPlaceholder', `AND "otb"."productSku" ILIKE '%${params.productSku}%'`)
 
     if (!!params.sort && params.order) {
       const queryOrder = params.order == 'ASC' ? 'ASC' : 'DESC';

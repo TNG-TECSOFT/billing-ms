@@ -14,17 +14,15 @@ class GetOrderToBillingParamsDto {
     @IsString()
     shipperId: string;
     @IsOptional()
-    
     product: string;
     @IsOptional()
-    
     service: string;
     @IsOptional()
-    
     tracking: string;
     @IsOptional()
-    
     impositionPlace: string;
+    @IsOptional()
+    productSku: string;
 }
 
 class GetOrderToBillingDto {
