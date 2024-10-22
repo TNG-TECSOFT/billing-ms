@@ -13,7 +13,7 @@ import { GetOrderToBillingParamsDto } from '../dto/get-order-to-billing.dto';
 @EntityRepository(OrderToBilling)
 export class OrderToBillingRepository extends Repository<OrderToBilling> {
   async getOrdersToBilling(
-   params: GetOrderToBillingParamsDto
+    params: GetOrderToBillingParamsDto
   ): Promise<Record<string, any>> {
     const ordersMap: Map<string, any> = new Map();
 
@@ -22,8 +22,8 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         otb.id AS "id",
         CONCAT(EXTRACT(MONTH FROM NOW()), '/', EXTRACT(YEAR FROM NOW())) AS "periodo",
         s.name AS shipper,
-        otb."createdAt" AS "fechaRegistro",
-        o.id AS "ordenId",
+        TO_CHAR(otb."createdAt", 'DD/MM/YYYY') AS "fechaRegistro",
+        o."trackingId" AS "trackingId",
         p.name AS "producto",
         sv.name AS "servicio",
         otb."productSku" AS "productoTango",
@@ -44,7 +44,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       LEFT JOIN 
           services as sv ON otb."serviceId" = sv.id
       LEFT JOIN 
-        node as n on o."chanelledNodeId" = n.id
+          node as n on o."chanelledNodeId" = n.id
     `;
 
     rawQuery += `WHERE s.id = ${params.shipperId} AND otb."sendAt" is NULL`
@@ -63,7 +63,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
       WHERE s.id = ${params.shipperId} AND otb."sendAt" IS NULL
     `);
 
-    const total = totalCountResult.total; 
+    const total = totalCountResult.total;
 
     if (params.page >= 1 && params.limit) {
       const skip = params.limit * (params.page - 1);
@@ -110,13 +110,13 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
   }
 
   async addOrdersToBilling(orders: BillableOrdersDto[], token: string): Promise<any> {
-    const connection = getConnection(); 
+    const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
 
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      
+
       orders.forEach(async (order) => {
         const userData = getDataFromToken(token)
 
@@ -126,17 +126,17 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
           order.insuranceValue,
           order.insurancePercentage,
           userData.username,
-        ];          
-        
+        ];
+
         const query = getAddOrdersToSendQuery();
         const result = await queryRunner.query(query, otbParams);
       });
       await queryRunner.commitTransaction();
-      
+
       return {
         statusCode: 200,
         message: `Se agregaron ${orders.length} órdenes en espera de enviar a facturar.`
-      }      
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new Error(`Error ejecutando query: ${error.message}`);
