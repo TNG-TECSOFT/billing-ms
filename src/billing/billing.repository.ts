@@ -53,45 +53,4 @@ export class BillingRepository{
       await queryRunner.release();
     }
   }
-  
-  async getBillableOrdersNoLimit(params: any): Promise<any> {
-    const queryRunner: QueryRunner = this.connection.createQueryRunner();
-    
-    try {
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      const paramsArray = [
-        params.shipperId,
-        params.serviceId,
-        params.productId,
-        params.trackingId,
-        params.momentId,
-        params.createdAtFrom,
-        params.createdAtTo,
-        params.chanelledNode,
-        params.impositionPlaceId
-      ];
-
-      let query = getBillableOrdersQuery();
-
-      const queryCount = `SELECT COUNT(*) 
-      FROM (` + getBillableOrdersQuery() + `) AS subquery;`;
-
-      const result = await queryRunner.query(query, paramsArray);
-      const resultCount = await queryRunner.query(queryCount, paramsArray);
-      
-      await queryRunner.commitTransaction();
-
-      return {
-        data: result,
-        count: resultCount[0].count,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new HttpException(`Error ejecutando query: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-    } finally {
-      await queryRunner.release();
-    }
-  }
 }
