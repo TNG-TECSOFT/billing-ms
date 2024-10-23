@@ -39,8 +39,9 @@ function getBillableOrdersQuery() {
       INNER JOIN "stages_history" ON "stages_history"."pieceId" = "piece"."id"
       INNER JOIN "stage" "recordedStage" ON "recordedStage"."id" = "stages_history"."stageId"
       INNER JOIN "moments" ON "moments"."id" = "stages_history"."momentId"
-      INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id"
-      INNER JOIN "product_shipper" ON "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
+      INNER JOIN "product_shipper" ON "product_shipper"."shipperId" = "order"."shipper"
+      INNER JOIN "product_shipper_products_product" ON "product_shipper_products_product"."productId" = "product"."id" 
+	  		AND "product_shipper"."id" = "product_shipper_products_product"."productShipperId"
     WHERE 
       "order"."shipper" = $1
       :orderIdsPlaceholder
