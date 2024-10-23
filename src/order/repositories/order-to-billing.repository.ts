@@ -29,7 +29,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
         p.name AS "producto",
         sv.name AS "servicio",
         otb."productSku" AS "productoTango",
-        n."name" AS "nodoImposicion",
+        n."name" AS "nodoDestino",
         otb."quantity" AS "cantidad",
         otb."unitPrice" AS "importeUnitario",
         otb."insurancePercentage" AS "porcentajeSeguro",
@@ -68,7 +68,7 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
 
       if (!!params.sort && params.order) {
         const queryOrder = params.order == 'ASC' ? 'ASC' : 'DESC';
-        rawQuery += ` ORDER BY ${params.sort} ${queryOrder}`;
+        rawQuery += ` ORDER BY "${params.sort}" ${queryOrder}`;
       } else {
         rawQuery += ` ORDER BY otb.id ASC`;
       }
