@@ -43,8 +43,7 @@ export class BillingService {
       // Format the data
       const transformedData = this.processResult(results.data);
       // Set the prices for the orders
-      const billableOrders = this.setOrdersPrices(transformedData, billingRules);
-      
+      const billableOrders = this.setOrdersPrices(transformedData, billingRules);      
 
       // Prepare the response object
       const count = validatedParams.limit;
@@ -83,6 +82,7 @@ export class BillingService {
       if (!parsedPayload ||
         !parsedPayload.shipperId ||
         !parsedPayload.momentId ||
+        parsedPayload.momentId == 0 ||
         !parsedPayload.createdAtFrom ||
         !parsedPayload.createdAtTo
       ) {
