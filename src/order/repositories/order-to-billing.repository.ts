@@ -138,8 +138,8 @@ export class OrderToBillingRepository extends Repository<OrderToBilling> {
 
         const otbParams = [
           order.id,
-          order.billingAmount,
-          order.insuranceValue,
+          order.billingAmount.toFixed(2),
+          order.insuranceValue.toFixed(2),
           order.insurancePercentage,
           userData.username,
         ];
